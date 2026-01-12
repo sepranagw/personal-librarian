@@ -23,6 +23,12 @@ source pa_venv/bin/activate
 pa_venv\Scripts\activate
 ```
 
+**Windows Troubleshooting:** If you get an execution policy error, run:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+Then try activating again.
+
 ## 5. Install dependencies
 ```bash
 pip install -r requirements.txt
