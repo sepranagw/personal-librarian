@@ -1,4 +1,4 @@
-### Getting Started
+#Getting Started
 
 ## 1. Open a bash or powershell terminal
 
@@ -6,9 +6,9 @@
 >python -m venv pa_venv
 
 ## 3. Activate newly created virtual environment
-# Linux
+#### Linux
 >source venv/bin/activate  
-# Windows 
+#### Windows 
 >venv\Scripts\activate
 
 ## 4. Run requirements.txt inside virtual environment to install dependencies needed
