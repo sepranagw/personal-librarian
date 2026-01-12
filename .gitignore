@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pa_venv/
+venv/
+*.egg-info/
+
+# Environment
+.env
+.env.local
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Data
+data/*
+!data/.gitkeep
+
+# Database
+db/*
+!db/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+
+# Manifest
+processed_files.json
+
+# OS
+.DS_Store
+Thumbs.db

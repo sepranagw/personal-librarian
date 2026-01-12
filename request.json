@@ -1,0 +1,5 @@
+﻿{
+  "model": "gpt-5-nano",
+  "input": "write a haiku about ai",
+  "store": true
+}
