@@ -1,4 +1,4 @@
-#Getting Started
+# Getting Started
 
 ## 1. Open a bash or powershell terminal
 
