@@ -1,4 +1,3 @@
-import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent  # <--- The updated, non-deprecated import

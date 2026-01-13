@@ -35,7 +35,6 @@ def build_vector_db():
     source_dir = "./data"
     
     for filename in os.listdir(source_dir):
-        #if filename.endswith(".pdf"):
         file_path = os.path.join(source_dir, filename)
         mtime = os.path.getmtime(file_path)
             
