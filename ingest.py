@@ -27,22 +27,22 @@ def save_manifest(manifest):
 def build_vector_db():
     manifest = load_manifest()
     embeddings = OpenAIEmbeddings()
-    
+
     # Initialize VectorStore (loads existing if it exists)
     vectorstore = Chroma(persist_directory="./db", embedding_function=embeddings)
-    
+
     new_docs_loaded = False
     source_dir = "./data"
-    
+
     for filename in os.listdir(source_dir):
         file_path = os.path.join(source_dir, filename)
         mtime = os.path.getmtime(file_path)
-            
+
         # Skip if already processed
         if filename in manifest and manifest[filename] >= mtime:
             print(f"Skipping {filename}, already previously processed...")
             continue
-        
+
         loader = None
         if filename.endswith(".pdf"):
             loader = PyPDFLoader(file_path)
@@ -54,10 +54,10 @@ def build_vector_db():
         if loader:
             print(f"Processing: {filename}")
             docs = loader.load()
-        
+
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
             chunks = text_splitter.split_documents(docs)
-            
+
             vectorstore.add_documents(filter_complex_metadata(chunks))
             manifest[filename] = mtime
             new_docs_loaded = True

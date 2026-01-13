@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import sys
 import os
-import subprocess
+# import subprocess  # For CI/CD tests
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import main
@@ -41,13 +41,13 @@ class TestMain(unittest.TestCase):
 #         )
 #         # Check both stdout and stderr for the output (might go to either)
 #         output = result.stdout + result.stderr
-#         
+#
 #         # Print for debugging if test fails
 #         if "--- Unified LangChain Agent Active ---" not in output:
 #             print(f"stdout: {result.stdout}")
 #             print(f"stderr: {result.stderr}")
 #             print(f"returncode: {result.returncode}")
-#         
+#
 #         # Assert startup messages appear
 #         self.assertIn("--- Unified LangChain Agent Active ---", output)
 #         self.assertIn("Welcome to your Smart Agent Personal Assistant", output)

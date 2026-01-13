@@ -2,9 +2,9 @@ import unittest
 from unittest.mock import patch, MagicMock, mock_open
 import os
 import sys
-import subprocess
+# import subprocess  # For CI/CD tests
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from ingest import load_manifest, save_manifest, build_vector_db
+from ingest import load_manifest, build_vector_db
 import ingest
 
 class TestIngest(unittest.TestCase):
@@ -32,13 +32,13 @@ class TestIngest(unittest.TestCase):
         mock_listdir.return_value = ["new.pdf", "old.pdf"]
         mock_load.return_value = {"old.pdf": 2000.0}
         mock_mtime.side_effect = lambda x: 3000.0 if "new.pdf" in x else 2000.0
-        
+
         # Mock Chroma Instance
         mock_db = MagicMock()
         mock_chroma.return_value = mock_db
-        
+
         build_vector_db()
-        
+
         # Verify only 'new.pdf' was processed
         self.assertEqual(mock_pdf.call_count, 1)
         mock_db.add_documents.assert_called_once()
@@ -53,9 +53,9 @@ class TestNoDataToIngest(unittest.TestCase):
         # Mock Chroma Instance
         mock_db = MagicMock()
         mock_chroma.return_value = mock_db
-        
+
         build_vector_db()
-        
+
         # Verify no new docs to be processed
         mock_print.assert_called_with("No new changes detected.")
 
@@ -72,7 +72,7 @@ class TestIngestExcelFormat(unittest.TestCase):
         mock_listdir.return_value = ["jobs_2025.xlsx"]
         mock_load.return_value = {} # Empty manifest
         mock_mtime.return_value = 123456789
-        
+
         # Mock the loader instance and its .load() method
         mock_loader_inst = MagicMock()
         mock_doc = MagicMock()
@@ -101,7 +101,7 @@ class TestIngestWordFormat(unittest.TestCase):
         mock_listdir.return_value = ["my_doc.docx"]
         mock_load.return_value = {} # Empty manifest
         mock_mtime.return_value = 2222222
-        
+
         # Mock the loader instance and its .load() method
         mock_loader_inst = MagicMock()
         mock_doc = MagicMock()
@@ -131,13 +131,13 @@ class TestIngestWordFormat(unittest.TestCase):
 #         )
 #         # Check both stdout and stderr for the output (might go to either)
 #         output = result.stdout + result.stderr
-#         
+#
 #         # Print for debugging if test fails
 #         if "--- Starting Ingestion Process ---" not in output:
 #             print(f"stdout: {result.stdout}")
 #             print(f"stderr: {result.stderr}")
 #             print(f"returncode: {result.returncode}")
-#         
+#
 #         self.assertIn("--- Starting Ingestion Process ---", output)
 
 if __name__ == "__main__":

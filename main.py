@@ -19,11 +19,11 @@ def handle_chat(user_input):
     # The modern agent expects a dictionary with a list of messages
     inputs = {"messages": [("user", user_input)]}
     result = agent.invoke(inputs)
-    
-    # In the unified agent, the result is a State object 
+
+    # In the unified agent, the result is a State object
     # and the answer is the content of the last message
     final_answer = result["messages"][-1].content
-    
+
     # Logic to extract sources from the message history
     sources = set()
     for msg in result["messages"]:
