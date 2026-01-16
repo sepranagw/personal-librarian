@@ -29,8 +29,8 @@ class TestMain(unittest.TestCase):
 class TestMainEntryPoint(unittest.TestCase):
     def test_main_entry_point_startup(self):
         """Test that the main entry point prints startup messages."""
-        # Use the venv Python to ensure dependencies are available
-        python_exe = os.path.join(os.path.dirname(os.path.dirname(__file__)), "venv", "Scripts", "python.exe")
+        # Use the current Python interpreter (assumes venv is activated or dependencies are installed)
+        python_exe = sys.executable
         result = subprocess.run(
             [python_exe, "main.py"],
             capture_output=True,
