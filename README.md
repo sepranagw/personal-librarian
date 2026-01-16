@@ -10,17 +10,17 @@ cd personal-librarian
 
 ## 3. Create your virtual environment
 ```bash
-python -m venv pa_venv
+python -m venv venv
 ```
 
 ## 4. Activate newly created virtual environment
 #### Linux/Mac
 ```bash
-source pa_venv/bin/activate
+source venv/bin/activate
 ```
 #### Windows 
 ```powershell
-pa_venv\Scripts\activate
+venv\Scripts\activate
 ```
 
 **Windows Troubleshooting:** If you get an execution policy error, run:

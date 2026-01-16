@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock, mock_open
 import os
 import sys
-# import subprocess  # For CI/CD tests
+import subprocess  # For CI/CD tests
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from ingest import load_manifest, build_vector_db
 import ingest
@@ -131,13 +131,13 @@ class TestIngestWordFormat(unittest.TestCase):
 #         )
 #         # Check both stdout and stderr for the output (might go to either)
 #         output = result.stdout + result.stderr
-#
+
 #         # Print for debugging if test fails
 #         if "--- Starting Ingestion Process ---" not in output:
 #             print(f"stdout: {result.stdout}")
 #             print(f"stderr: {result.stderr}")
 #             print(f"returncode: {result.returncode}")
-#
+
 #         self.assertIn("--- Starting Ingestion Process ---", output)
 
 if __name__ == "__main__":
