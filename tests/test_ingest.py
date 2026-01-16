@@ -121,8 +121,8 @@ class TestIngestWordFormat(unittest.TestCase):
 # class TestIngestMain(unittest.TestCase):
 #     def test_main_entry_point(self):
 #         """Test that the main entry point prints startup message and runs."""
-#         # Use the venv Python to ensure dependencies are available
-#         python_exe = os.path.join(os.path.dirname(os.path.dirname(__file__)), "venv", "Scripts", "python.exe")
+#         # Use the current Python interpreter (assumes venv is activated or dependencies are installed)
+#         python_exe = sys.executable
 #         result = subprocess.run(
 #             [python_exe, "ingest.py"],
 #             capture_output=True,

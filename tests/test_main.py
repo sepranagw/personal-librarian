@@ -25,6 +25,21 @@ class TestMain(unittest.TestCase):
         self.assertEqual(result["sources"], ["Retrieved from: search_personal_docs"])
         mock_invoke.assert_called_once()
 
+    @patch('builtins.input', side_effect=['exit'])
+    @patch('builtins.print')
+    @patch('main.handle_chat')
+    def test_main_block_coverage(self, mock_handle_chat, mock_print, mock_input):
+        """Test main block prints startup messages - for coverage tracking."""
+        # Execute the if __name__ == "__main__" block by running the module code
+        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'main.py')) as f:
+            code = compile(f.read(), 'main.py', 'exec')
+        exec(code, {'__name__': '__main__'})
+        
+        # Verify startup messages were printed
+        print_calls = [str(call) for call in mock_print.call_args_list]
+        self.assertTrue(any("Unified LangChain Agent Active" in str(c) for c in print_calls))
+        self.assertTrue(any("Welcome to your Smart Agent Personal Assistant" in str(c) for c in print_calls))
+
 # TODO: Re-enable in CI/CD pipeline where venv name is consistent
 class TestMainEntryPoint(unittest.TestCase):
     def test_main_entry_point_startup(self):
