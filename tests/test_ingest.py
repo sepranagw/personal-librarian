@@ -1,9 +1,9 @@
-import unittest
-from unittest.mock import patch, MagicMock, mock_open
 import os
 import sys
+import unittest
+from unittest.mock import patch, MagicMock, mock_open
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from ingest import load_manifest, build_vector_db
 import ingest
 
@@ -90,6 +90,7 @@ class TestIngestExcelFormat(unittest.TestCase):
         mock_excel_loader.assert_called_once_with(os.path.join("./data", "jobs_2025.xlsx"), mode="elements")
         print("Excel ingestion path verified.")
 
+
 class TestIngestWordFormat(unittest.TestCase):
 
     @patch("ingest.Docx2txtLoader")
@@ -101,7 +102,7 @@ class TestIngestWordFormat(unittest.TestCase):
         """Verify that .docx files trigger the Docx2txtLoader."""
         # 1. Setup mocks
         mock_listdir.return_value = ["my_doc.docx"]
-        mock_load.return_value = {} # Empty manifest
+        mock_load.return_value = {}  # Empty manifest
         mock_mtime.return_value = 2222222
 
         # Mock the loader instance and its .load() method

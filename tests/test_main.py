@@ -1,10 +1,10 @@
+import os
+import sys
+import subprocess
 import unittest
 from unittest.mock import patch, MagicMock
-import sys
-import os
-import subprocess
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import main
 
 

@@ -38,6 +38,7 @@ def handle_chat(user_input):
         "sources": list(sources)
     }
 
+
 if __name__ == "__main__":
     print("--- Unified LangChain Agent Active ---")
     print("\nWelcome to your Smart Agent Personal Assistant.")
