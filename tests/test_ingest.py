@@ -2,10 +2,11 @@ import unittest
 from unittest.mock import patch, MagicMock, mock_open
 import os
 import sys
-import subprocess  # For CI/CD tests
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from ingest import load_manifest, build_vector_db
 import ingest
+
 
 class TestIngest(unittest.TestCase):
     @patch("os.path.exists")
@@ -26,7 +27,6 @@ class TestIngest(unittest.TestCase):
     @patch("ingest.OpenAIEmbeddings")
     @patch("ingest.load_manifest")
     @patch("ingest.save_manifest")
-
     def test_build_vector_db_logic(self, mock_save, mock_load, mock_emb, mock_chroma, mock_pdf, mock_mtime, mock_listdir):
         # Setup: One new file, one existing file
         mock_listdir.return_value = ["new.pdf", "old.pdf"]
@@ -44,6 +44,7 @@ class TestIngest(unittest.TestCase):
         mock_db.add_documents.assert_called_once()
         mock_save.assert_called_once()
 
+
 class TestNoDataToIngest(unittest.TestCase):
     @patch("os.listdir")
     @patch("ingest.Chroma")
@@ -59,6 +60,7 @@ class TestNoDataToIngest(unittest.TestCase):
         # Verify no new docs to be processed
         mock_print.assert_called_with("No new changes detected.")
 
+
 class TestIngestExcelFormat(unittest.TestCase):
 
     @patch("ingest.UnstructuredExcelLoader")
@@ -70,7 +72,7 @@ class TestIngestExcelFormat(unittest.TestCase):
         """Verify that .xlsx files trigger the UnstructuredExcelLoader."""
         # 1. Setup mocks
         mock_listdir.return_value = ["jobs_2025.xlsx"]
-        mock_load.return_value = {} # Empty manifest
+        mock_load.return_value = {}  # Empty manifest
         mock_mtime.return_value = 123456789
 
         # Mock the loader instance and its .load() method
@@ -117,6 +119,7 @@ class TestIngestWordFormat(unittest.TestCase):
         mock_word_loader.assert_called_once_with(os.path.join("./data", "my_doc.docx"))
         print("Word doc ingestion path verified.")
 
+
 # TODO: Re-enable in CI/CD pipeline where venv name is consistent
 # class TestIngestMain(unittest.TestCase):
 #     def test_main_entry_point(self):
@@ -139,6 +142,7 @@ class TestIngestWordFormat(unittest.TestCase):
 #             print(f"returncode: {result.returncode}")
 
 #         self.assertIn("--- Starting Ingestion Process ---", output)
+
 
 if __name__ == "__main__":
     unittest.main()

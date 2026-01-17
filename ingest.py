@@ -12,7 +12,9 @@ from langchain_community.vectorstores.utils import filter_complex_metadata
 from dotenv import load_dotenv
 
 load_dotenv()
+
 MANIFEST_FILE = "processed_files.json"
+
 
 def load_manifest():
     if os.path.exists(MANIFEST_FILE):
@@ -20,9 +22,11 @@ def load_manifest():
             return json.load(f)
     return {}
 
+
 def save_manifest(manifest):
     with open(MANIFEST_FILE, 'w') as f:
         json.dump(manifest, f)
+
 
 def build_vector_db():
     manifest = load_manifest()
@@ -49,7 +53,7 @@ def build_vector_db():
         elif filename.endswith(".docx") or filename.endswith(".doc"):
             loader = Docx2txtLoader(file_path)
         elif filename.endswith(".xlsx") or filename.endswith(".xls"):
-            loader = UnstructuredExcelLoader(file_path, mode = "elements")
+            loader = UnstructuredExcelLoader(file_path, mode="elements")
 
         if loader:
             print(f"Processing: {filename}")
@@ -62,12 +66,12 @@ def build_vector_db():
             manifest[filename] = mtime
             new_docs_loaded = True
 
-
     if new_docs_loaded:
         save_manifest(manifest)
         print(f"Database updated. Total chunks: {vectorstore._collection.count()}")
     else:
         print("No new changes detected.")
+
 
 if __name__ == "__main__":
     print("--- Starting Ingestion Process ---")

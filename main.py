@@ -5,12 +5,14 @@ from tools import get_retriever_tool
 
 # 1. Setup
 load_dotenv()
+
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 tools = [get_retriever_tool()]
 
 # 2. Build the Agent
 # This is the modern 'Unified Agent' that replaces create_react_agent
 agent = create_agent(model, tools)
+
 
 def handle_chat(user_input):
     """
@@ -43,7 +45,8 @@ if __name__ == "__main__":
     while True:
         print("\n********If you'd like to finish, enter 'exit' or 'quit' without surrounding quotes.**********")
         q = input("\nYou: ")
-        if q.lower() in ["exit", "quit"]: break
+        if q.lower() in ["exit", "quit"]:
+            break
         res = handle_chat(q)
         print(f"\nAgent: {res['answer']}")
         if res["sources"]:

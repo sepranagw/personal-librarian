@@ -1,9 +1,11 @@
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import unittest
 from unittest.mock import patch, MagicMock
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tools import get_retriever_tool
+
 
 class TestTools(unittest.TestCase):
     @patch("tools.Chroma")
@@ -24,6 +26,7 @@ class TestTools(unittest.TestCase):
         # Verify Chroma was initialized with the correct directory
         mock_chroma.assert_called_once()
         self.assertEqual(mock_chroma.call_args.kwargs['persist_directory'], "./db")
+
 
 if __name__ == "__main__":
     unittest.main()

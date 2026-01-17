@@ -1,7 +1,8 @@
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
-#from langchain.tools import create_retriever_tool
+# from langchain.tools import create_retriever_tool
 from langchain_core.tools import create_retriever_tool
+
 
 def get_retriever_tool():
     # Load the existing database

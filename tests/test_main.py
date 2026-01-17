@@ -2,10 +2,11 @@ import unittest
 from unittest.mock import patch, MagicMock
 import sys
 import os
-import subprocess  # For CI/CD tests
+import subprocess
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import main
+
 
 class TestMain(unittest.TestCase):
 
@@ -34,11 +35,12 @@ class TestMain(unittest.TestCase):
         with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'main.py')) as f:
             code = compile(f.read(), 'main.py', 'exec')
         exec(code, {'__name__': '__main__'})
-        
+
         # Verify startup messages were printed
         print_calls = [str(call) for call in mock_print.call_args_list]
         self.assertTrue(any("Unified LangChain Agent Active" in str(c) for c in print_calls))
         self.assertTrue(any("Welcome to your Smart Agent Personal Assistant" in str(c) for c in print_calls))
+
 
 # TODO: Re-enable in CI/CD pipeline where venv name is consistent
 class TestMainEntryPoint(unittest.TestCase):
@@ -66,6 +68,7 @@ class TestMainEntryPoint(unittest.TestCase):
         # Assert startup messages appear
         self.assertIn("--- Unified LangChain Agent Active ---", output)
         self.assertIn("Welcome to your Smart Agent Personal Assistant", output)
+
 
 if __name__ == "__main__":
     unittest.main()
