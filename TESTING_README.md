@@ -10,6 +10,11 @@ pip install coverage
 coverage run -m unittest discover tests
 ```
 
+## 3. Run the following to see your code coverage for each production code file
+```bash
+coverage report
+```
+
 ## 3. Run the following to write an XML coverage report
 ```bash
 coverage xml

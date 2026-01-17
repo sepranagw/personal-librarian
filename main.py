@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-from langchain.agents import create_agent  # <--- The updated, non-deprecated import
+from langchain.agents import create_agent
 from tools import get_retriever_tool
 
 # 1. Setup
