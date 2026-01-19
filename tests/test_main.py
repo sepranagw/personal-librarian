@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import main
 
 
@@ -17,7 +18,7 @@ class TestMain(unittest.TestCase):
         mock_ai_message = MagicMock()
         mock_ai_message.content = "This is the answer."
         mock_ai_message.name = "search_personal_docs"
-        
+
         mock_agent = MagicMock()
         mock_agent.invoke.return_value = {
             "messages": [mock_ai_message]

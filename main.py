@@ -11,6 +11,7 @@ model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 # Initialize tools and agent lazily to avoid import-time errors
 _agent = None
 
+
 def get_agent():
     """Lazy initialization of agent to avoid loading tools on import."""
     global _agent
@@ -65,4 +66,3 @@ if __name__ == "__main__":
             print(f"\nError: {e}")
             import traceback
             traceback.print_exc()
-

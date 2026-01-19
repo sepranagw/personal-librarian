@@ -4,7 +4,6 @@ from langchain_core.tools import create_retriever_tool
 import os
 
 
-
 def get_retriever_tool():
     # Load the existing database
     embeddings = OpenAIEmbeddings()

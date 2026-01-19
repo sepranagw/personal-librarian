@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch, MagicMock, mock_open
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from ingest import load_manifest, build_vector_db
 import ingest
 
@@ -28,7 +29,10 @@ class TestIngest(unittest.TestCase):
     @patch("ingest.OpenAIEmbeddings")
     @patch("ingest.load_manifest")
     @patch("ingest.save_manifest")
-    def test_build_vector_db_logic(self, mock_save, mock_load, mock_emb, mock_faiss, mock_pdf, mock_exists, mock_mtime, mock_listdir):
+    def test_build_vector_db_logic(
+        self, mock_save, mock_load, mock_emb, mock_faiss, mock_pdf,
+        mock_exists, mock_mtime, mock_listdir
+    ):
         # Setup: One new file, one existing file
         mock_listdir.return_value = ["new.pdf", "old.pdf"]
         mock_load.return_value = {"old.pdf": 2000.0}
@@ -53,7 +57,6 @@ class TestNoDataToIngest(unittest.TestCase):
     @patch("builtins.print")
     def test_build_vector_db_logic(self, mock_print, mock_faiss, mock_listdir):
         mock_listdir.return_value = []
-
 
         build_vector_db()
 
@@ -96,6 +99,7 @@ class TestIngestExcelFormat(unittest.TestCase):
         mock_excel_loader.assert_called_once_with(os.path.join("./data", "jobs_2025.xlsx"), mode="elements")
         print("Excel ingestion path verified.")
 
+
 class TestIngestPowerpointFormat(unittest.TestCase):
 
     @patch("ingest.UnstructuredPowerPointLoader")
@@ -119,23 +123,29 @@ class TestIngestPowerpointFormat(unittest.TestCase):
         # Mock the loader instance and its .load() method
         mock_loader_inst = MagicMock()
         mock_text_doc = MagicMock()
-        mock_text_doc.page_content = "Job hunt strategy, Networking is the most likely avenue for getting an interview"
+        mock_text_doc.page_content = (
+            "Job hunt strategy, Networking is the most likely avenue "
+            "for getting an interview"
+        )
         mock_text_doc.metadata = {"source": "jobs_presentation.pptx"}
-    
+
         mock_image_doc = MagicMock()
         mock_image_doc.page_content = "[Image: Career networking diagram]"
         mock_image_doc.metadata = {
-            "source": "jobs_presentation.pptx", 
+            "source": "jobs_presentation.pptx",
             "element_type": "image",
             "slide_number": 1,
             "image_name": "networking_diagram.jpg"
         }
 
         mock_table_doc = MagicMock()
-        mock_table_doc.page_content = "Top Companies | Hiring Status | Interview Stage\nGoogle | Active | Technical Round\nMicrosoft | Active | Final Round"
+        mock_table_doc.page_content = (
+            "Top Companies | Hiring Status | Interview Stage\n"
+            "Google | Active | Technical Round\nMicrosoft | Active | Final Round"
+        )
         mock_table_doc.metadata = {
             "source": "jobs_presentation.pptx",
-            "element_type": "table", 
+            "element_type": "table",
             "slide_number": 2
         }
         mock_loader_inst.load.return_value = [mock_text_doc, mock_image_doc, mock_table_doc]
@@ -145,8 +155,11 @@ class TestIngestPowerpointFormat(unittest.TestCase):
         ingest.build_vector_db()
 
         # 3. Assertions
-        mock_ppt_loader.assert_called_once_with(os.path.join("./data", "jobs_presentation.pptx"), mode="elements")
+        mock_ppt_loader.assert_called_once_with(
+            os.path.join("./data", "jobs_presentation.pptx"), mode="elements"
+        )
         print("Powerpoint ingestion path verified.")
+
 
 class TestIngestWordFormat(unittest.TestCase):
 
@@ -195,17 +208,20 @@ class TestFAISSCreation(unittest.TestCase):
     @patch("ingest.save_manifest")
     @patch("ingest.FAISS")
     @patch("ingest.OpenAIEmbeddings")
-    def test_faiss_creation_from_documents(self, mock_emb, mock_faiss, mock_save, mock_load, mock_listdir, mock_exists, mock_mtime, mock_pdf_loader):
+    def test_faiss_creation_from_documents(
+        self, mock_emb, mock_faiss, mock_save, mock_load,
+        mock_listdir, mock_exists, mock_mtime, mock_pdf_loader
+    ):
         """Verify that FAISS.from_documents is called when vectorstore is None."""
         # 1. Setup mocks
         mock_listdir.return_value = ["new_document.pdf"]
         mock_load.return_value = {}  # Empty manifest
         mock_mtime.return_value = 123456789
-        
-        # Key: os.path.exists returns False for FAISS_INDEX_PATH check (line 39 in ingest.py)
+
+        # Key: os.path.exists returns False for FAISS_INDEX_PATH check
         # This makes vectorstore = None initially
         mock_exists.return_value = False
-        
+
         # Mock the loader instance
         mock_loader_inst = MagicMock()
         mock_doc = MagicMock()
@@ -213,11 +229,11 @@ class TestFAISSCreation(unittest.TestCase):
         mock_doc.metadata = {"source": "new_document.pdf"}
         mock_loader_inst.load.return_value = [mock_doc]
         mock_pdf_loader.return_value = mock_loader_inst
-        
+
         # Mock FAISS
         mock_db = MagicMock()
         mock_faiss.from_documents.return_value = mock_db
-        
+
         # 2. Run ingest
         ingest.build_vector_db()
         

@@ -18,7 +18,6 @@ MANIFEST_FILE = "processed_files.json"
 FAISS_INDEX_PATH = "./db/faiss_index"
 
 
-
 def load_manifest():
     if os.path.exists(MANIFEST_FILE):
         with open(MANIFEST_FILE, 'r') as f:
@@ -61,7 +60,7 @@ def build_vector_db():
         elif filename.endswith(".xlsx") or filename.endswith(".xls"):
             loader = UnstructuredExcelLoader(file_path, mode="elements")
         elif filename.endswith(".pptx") or filename.endswith(".ppt"):
-            loader = UnstructuredPowerPointLoader(file_path, mode = "elements")
+            loader = UnstructuredPowerPointLoader(file_path, mode="elements")
 
         if loader:
             print(f"Processing: {filename}")
