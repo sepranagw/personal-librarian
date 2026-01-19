@@ -7,11 +7,17 @@ from tools import get_retriever_tool
 load_dotenv()
 
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-tools = [get_retriever_tool()]
 
-# 2. Build the Agent
-# This is the modern 'Unified Agent' that replaces create_react_agent
-agent = create_agent(model, tools)
+# Initialize tools and agent lazily to avoid import-time errors
+_agent = None
+
+def get_agent():
+    """Lazy initialization of agent to avoid loading tools on import."""
+    global _agent
+    if _agent is None:
+        tools = [get_retriever_tool()]
+        _agent = create_agent(model, tools)
+    return _agent
 
 
 def handle_chat(user_input):
@@ -20,6 +26,7 @@ def handle_chat(user_input):
     """
     # The modern agent expects a dictionary with a list of messages
     inputs = {"messages": [("user", user_input)]}
+    agent = get_agent()
     result = agent.invoke(inputs)
 
     # In the unified agent, the result is a State object
