@@ -18,6 +18,7 @@ MANIFEST_FILE = "processed_files.json"
 FAISS_INDEX_PATH = "./db/faiss_index"
 
 
+
 def load_manifest():
     if os.path.exists(MANIFEST_FILE):
         with open(MANIFEST_FILE, 'r') as f:

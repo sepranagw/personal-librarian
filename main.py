@@ -48,6 +48,7 @@ if __name__ == "__main__":
         q = input("\nYou: ")
         if q.lower() in ["exit", "quit"]:
             break
+
         try:
             res = handle_chat(q)
             print(f"\nAgent: {res['answer']}")
@@ -57,3 +58,4 @@ if __name__ == "__main__":
             print(f"\nError: {e}")
             import traceback
             traceback.print_exc()
+

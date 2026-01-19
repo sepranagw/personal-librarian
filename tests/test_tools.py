@@ -31,5 +31,6 @@ class TestTools(unittest.TestCase):
         mock_faiss.load_local.assert_called_once()
 
 
+
 if __name__ == "__main__":
     unittest.main()
