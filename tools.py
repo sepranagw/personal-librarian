@@ -1,14 +1,16 @@
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
-#from langchain.tools import create_retriever_tool
 from langchain_core.tools import create_retriever_tool
+import os
+
 
 def get_retriever_tool():
     # Load the existing database
-    vectorstore = Chroma(
-        persist_directory="./db",
-        embedding_function=OpenAIEmbeddings()
-    )
+    embeddings = OpenAIEmbeddings()
+    faiss_path = "./db/faiss_index"
+    if not os.path.exists(faiss_path):
+        raise FileNotFoundError(f"FAISS index not found at {faiss_path}. Run ingest.py first.")
+    vectorstore = FAISS.load_local(faiss_path, embeddings, allow_dangerous_deserialization=True)
     retriever = vectorstore.as_retriever()
 
     # Wrap it as a tool
