@@ -39,3 +39,6 @@ jobs:
         OPENAI_API_KEY: ${{ secrets. OPENAI_API_KEY }}
       run: |
         coverage run -m unittest discover tests
+    - name: Show code coverage
+      run: |
+        coverage report
