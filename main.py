@@ -3,9 +3,8 @@ from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
 from tools import get_retriever_tool
 
-# 1. Setup
-load_dotenv()
 
+load_dotenv()
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 # Initialize tools and agent lazily to avoid import-time errors

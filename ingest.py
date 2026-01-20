@@ -34,7 +34,6 @@ def build_vector_db():
     manifest = load_manifest()
     embeddings = OpenAIEmbeddings()
 
-    # Initialize VectorStore (loads existing if it exists)
     if os.path.exists(FAISS_INDEX_PATH):
         vectorstore = FAISS.load_local(FAISS_INDEX_PATH, embeddings, allow_dangerous_deserialization=True)
     else:
@@ -47,7 +46,6 @@ def build_vector_db():
         file_path = os.path.join(source_dir, filename)
         mtime = os.path.getmtime(file_path)
 
-        # Skip if already processed
         if filename in manifest and manifest[filename] >= mtime:
             print(f"Skipping {filename}, already previously processed...")
             continue
