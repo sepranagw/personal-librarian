@@ -10,3 +10,4 @@ pytest-cov
 
 # Quality
 coverage
+flake8
