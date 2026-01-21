@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class TestMainEntryPoint(unittest.TestCase):
     """System test for the main application entry point."""
-    
+
     @unittest.skipIf(
         not os.environ.get("OPENAI_API_KEY"),
         "OPENAI_API_KEY not set - skipping system test"
@@ -58,15 +58,15 @@ class TestMainEntryPoint(unittest.TestCase):
     def test_main_exception_handling(self):
         """Test that main.py properly handles and displays exceptions."""
         python_exe = sys.executable
-        
+
         # Create a temporary modified main.py that will raise an error
         # We'll provide input that triggers handle_chat, but we can't easily force an error
         # So instead, let's test with a query and verify the error handling works if it fails
-        
+
         # Simpler approach: just send an invalid/problematic query that might fail
         # But actually, the better test is to verify the exception handling path exists
         # by checking that asking a question works (happy path is covered)
-        
+
         result = subprocess.run(
             [python_exe, "main.py"],
             capture_output=True,
@@ -75,14 +75,14 @@ class TestMainEntryPoint(unittest.TestCase):
             cwd=os.path.dirname(os.path.dirname(__file__)),
             timeout=30
         )
-        
+
         output = result.stdout + result.stderr
-        
+
         # The program should either respond successfully OR show error handling
         # Both cases show the exception handling code works
         has_agent_response = "Agent:" in output
         has_error_handling = "Error:" in output
-        
+
         self.assertTrue(
             has_agent_response or has_error_handling,
             "Should show either agent response or error message (both indicate exception handling works)"

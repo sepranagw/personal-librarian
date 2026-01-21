@@ -5,8 +5,8 @@ from unittest.mock import patch, MagicMock, mock_open
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ingest import load_manifest, build_vector_db
-import ingest
+from ingest import load_manifest, build_vector_db  # noqa: E402
+import ingest  # noqa: E402
 
 
 class TestIngest(unittest.TestCase):
@@ -236,7 +236,7 @@ class TestFAISSCreation(unittest.TestCase):
 
         # 2. Run ingest
         ingest.build_vector_db()
-        
+
         # 3. Assertions - verify from_documents was called (not add_documents)
         mock_faiss.from_documents.assert_called_once()
         # The first argument should be the filtered_chunks

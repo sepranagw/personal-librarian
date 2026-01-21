@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools import get_retriever_tool
+from tools import get_retriever_tool  # noqa: E402
 
 
 class TestTools(unittest.TestCase):
