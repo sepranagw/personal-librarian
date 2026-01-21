@@ -1,12 +1,10 @@
 langchain
 langchain-openai
 langchain-community
-chromadb
 pypdf
 unstructured
 docx2txt
 openpyxl
 pandas
 networkx
-langchain-chroma
 msoffcrypto-tool

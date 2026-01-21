@@ -15,6 +15,7 @@ venv/
 # Coverage
 .coverage
 coverage.xml
+coverage.lcov
 htmlcov/
 
 # Data

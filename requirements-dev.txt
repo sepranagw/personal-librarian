@@ -1,0 +1,12 @@
+# Development dependencies for testing and development
+# Install with: pip install -r requirements-dev.txt
+
+# Include all production dependencies
+-r requirements.txt
+
+# Testing frameworks
+pytest
+pytest-cov
+
+# Quality
+coverage
