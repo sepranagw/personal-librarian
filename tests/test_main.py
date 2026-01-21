@@ -45,41 +45,6 @@ class TestMain(unittest.TestCase):
         self.assertTrue(any("Unified LangChain Agent Active" in str(c) for c in print_calls))
         self.assertTrue(any("Welcome to your Smart Agent Personal Assistant" in str(c) for c in print_calls))
 
-    # TODO: Fix this test - exec() namespace issues with mocking
-    # @patch('builtins.input', side_effect=['What is the capital?', 'exit'])
-    # def test_main_block_exception_handling(self, mock_input):
-    #     """Test that the main block properly handles exceptions from handle_chat."""
-    #     import io
-    #     import sys
-    #     from unittest.mock import MagicMock
-    #     
-    #     # Capture printed output
-    #     captured_output = io.StringIO()
-    #     sys.stdout = captured_output
-    #     sys.stderr = captured_output
-    #     
-    #     # Mock handle_chat to raise an exception
-    #     original_handle_chat = main.handle_chat
-    #     main.handle_chat = MagicMock(side_effect=ValueError("Simulated error"))
-    #     
-    #     try:
-    #         # Execute the if __name__ == "__main__" block
-    #         with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'main.py')) as f:
-    #             code = compile(f.read(), 'main.py', 'exec')
-    #         exec(code, {'__name__': '__main__'})
-    #         
-    #         # Get the output
-    #         output = captured_output.getvalue()
-    #         
-    #         # Verify error message was printed
-    #         self.assertIn("Error: Simulated error", output)
-    #     finally:
-    #         # Restore
-    #         sys.stdout = sys.__stdout__
-    #         sys.stderr = sys.__stderr__
-    #         main.handle_chat = original_handle_chat
-
-
 
 class TestMainEntryPoint(unittest.TestCase):
     def test_main_entry_point_startup(self):
