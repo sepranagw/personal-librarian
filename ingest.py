@@ -29,6 +29,34 @@ def save_manifest(manifest):
     with open(MANIFEST_FILE, 'w') as f:
         json.dump(manifest, f)
 
+def yield_loader(filename, file_path):
+    loader_dict = {
+        ".pdf" : lambda: PyPDFLoader(file_path),
+        ".doc" : lambda: Docx2txtLoader(file_path),
+        ".xls" : lambda: UnstructuredExcelLoader(file_path, mode="elements"),
+        ".ppt" : lambda: UnstructuredPowerPointLoader(file_path, mode="elements")
+    }
+    extension = filename.rfind('.')
+    # if .pptx, shorten to .ppt, .xlsx -> .xls, etc
+    extension_short = filename[extension:extension+4] if extension != -1 else ""
+    return loader_dict[extension_short]() if extension_short else None
+
+def chunk_and_filter_docs(docs):
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    chunks = text_splitter.split_documents(docs)
+    return filter_complex_metadata(chunks)
+
+def load_new_docs(loader, filename, embeddings, manifest, mtime, vectorstore):
+    print(f"Processing: {filename}")
+    docs = loader.load()
+    filtered_chunks = chunk_and_filter_docs(docs)
+
+    if vectorstore is None:
+        vectorstore = FAISS.from_documents(filtered_chunks, embeddings)
+    else:
+        vectorstore.add_documents(filtered_chunks)
+    manifest[filename] = mtime
+    return True, vectorstore, manifest
 
 def build_vector_db():
     manifest = load_manifest()
@@ -50,30 +78,10 @@ def build_vector_db():
             print(f"Skipping {filename}, already previously processed...")
             continue
 
-        loader = None
-        if filename.endswith(".pdf"):
-            loader = PyPDFLoader(file_path)
-        elif filename.endswith(".docx") or filename.endswith(".doc"):
-            loader = Docx2txtLoader(file_path)
-        elif filename.endswith(".xlsx") or filename.endswith(".xls"):
-            loader = UnstructuredExcelLoader(file_path, mode="elements")
-        elif filename.endswith(".pptx") or filename.endswith(".ppt"):
-            loader = UnstructuredPowerPointLoader(file_path, mode="elements")
+        loader = yield_loader(filename, file_path)
 
         if loader:
-            print(f"Processing: {filename}")
-            docs = loader.load()
-
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-            chunks = text_splitter.split_documents(docs)
-            filtered_chunks = filter_complex_metadata(chunks)
-
-            if vectorstore is None:
-                vectorstore = FAISS.from_documents(filtered_chunks, embeddings)
-            else:
-                vectorstore.add_documents(filtered_chunks)
-            manifest[filename] = mtime
-            new_docs_loaded = True
+            new_docs_loaded, vectorstore, manifest= load_new_docs(loader, filename, embeddings, manifest, mtime, vectorstore)
 
     if new_docs_loaded:
         save_manifest(manifest)
