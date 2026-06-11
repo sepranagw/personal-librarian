@@ -1,16 +1,29 @@
-from langchain_community.vectorstores import FAISS
+import os
+
+from langchain_postgres import PGVector
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.tools import create_retriever_tool
-import os
+
+
+PGVECTOR_CONNECTION = os.getenv(
+    "PGVECTOR_CONNECTION",
+    "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian"
+)
+PGVECTOR_COLLECTION = os.getenv("PGVECTOR_COLLECTION", "personal_docs")
+
+
+def get_pgvector_store(embeddings):
+    return PGVector(
+        embeddings=embeddings,
+        collection_name=PGVECTOR_COLLECTION,
+        connection=PGVECTOR_CONNECTION,
+        use_jsonb=True,
+    )
 
 
 def get_retriever_tool():
-    # Load the existing database
     embeddings = OpenAIEmbeddings()
-    faiss_path = "./db/faiss_index"
-    if not os.path.exists(faiss_path):
-        raise FileNotFoundError(f"FAISS index not found at {faiss_path}. Run ingest.py first.")
-    vectorstore = FAISS.load_local(faiss_path, embeddings, allow_dangerous_deserialization=True)
+    vectorstore = get_pgvector_store(embeddings)
     retriever = vectorstore.as_retriever()
 
     # Wrap it as a tool

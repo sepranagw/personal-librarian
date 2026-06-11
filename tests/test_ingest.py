@@ -23,39 +23,37 @@ class TestIngest(unittest.TestCase):
 
     @patch("os.listdir")
     @patch("os.path.getmtime")
-    @patch("os.path.exists")
     @patch("ingest.PyPDFLoader")
-    @patch("ingest.FAISS")
+    @patch("ingest.PGVector")
     @patch("ingest.OpenAIEmbeddings")
     @patch("ingest.load_manifest")
     @patch("ingest.save_manifest")
     def test_build_vector_db_logic(
-        self, mock_save, mock_load, mock_emb, mock_faiss, mock_pdf,
-        mock_exists, mock_mtime, mock_listdir
+        self, mock_save, mock_load, mock_emb, mock_pgvector, mock_pdf,
+        mock_mtime, mock_listdir
     ):
         # Setup: One new file, one existing file
         mock_listdir.return_value = ["new.pdf", "old.pdf"]
         mock_load.return_value = {"old.pdf": 2000.0}
         mock_mtime.side_effect = lambda x: 3000.0 if "new.pdf" in x else 2000.0
-        mock_exists.return_value = False  # No existing FAISS index
 
-        # Mock FAISS
+        # Mock PGVector
         mock_db = MagicMock()
-        mock_faiss.from_documents.return_value = mock_db
+        mock_pgvector.return_value = mock_db
 
         build_vector_db()
 
         # Verify only 'new.pdf' was processed
         self.assertEqual(mock_pdf.call_count, 1)
-        mock_db.save_local.assert_called_once()
+        mock_db.add_documents.assert_called_once()
         mock_save.assert_called_once()
 
 
 class TestNoDataToIngest(unittest.TestCase):
     @patch("os.listdir")
-    @patch("ingest.FAISS")
+    @patch("ingest.PGVector")
     @patch("builtins.print")
-    def test_build_vector_db_logic(self, mock_print, mock_faiss, mock_listdir):
+    def test_build_vector_db_logic(self, mock_print, mock_pgvector, mock_listdir):
         mock_listdir.return_value = []
 
         build_vector_db()
@@ -68,21 +66,19 @@ class TestIngestExcelFormat(unittest.TestCase):
 
     @patch("ingest.UnstructuredExcelLoader")
     @patch("os.path.getmtime")
-    @patch("os.path.exists")
     @patch("os.listdir")
     @patch("ingest.load_manifest")
-    @patch("ingest.FAISS")
-    def test_excel_ingestion_path(self, mock_faiss, mock_load, mock_listdir, mock_exists, mock_mtime, mock_excel_loader):
+    @patch("ingest.PGVector")
+    def test_excel_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_excel_loader):
         """Verify that .xlsx files trigger the UnstructuredExcelLoader."""
         # 1. Setup mocks
         mock_listdir.return_value = ["jobs_2025.xlsx"]
         mock_load.return_value = {}  # Empty manifest
         mock_mtime.return_value = 123456789
-        mock_exists.return_value = False  # No existing FAISS index
 
-        # Mock FAISS
+        # Mock PGVector
         mock_db = MagicMock()
-        mock_faiss.from_documents.return_value = mock_db
+        mock_pgvector.return_value = mock_db
 
         # Mock the loader instance and its .load() method
         mock_loader_inst = MagicMock()
@@ -104,21 +100,19 @@ class TestIngestPowerpointFormat(unittest.TestCase):
 
     @patch("ingest.UnstructuredPowerPointLoader")
     @patch("os.path.getmtime")
-    @patch("os.path.exists")
     @patch("os.listdir")
     @patch("ingest.load_manifest")
-    @patch("ingest.FAISS")
-    def test_powerpoint_ingestion_path(self, mock_faiss, mock_load, mock_listdir, mock_exists, mock_mtime, mock_ppt_loader):
+    @patch("ingest.PGVector")
+    def test_powerpoint_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_ppt_loader):
         """Verify that .pptx files trigger the UnstructuredPowerPointLoader."""
         # 1. Setup mocks
         mock_listdir.return_value = ["jobs_presentation.pptx"]
         mock_load.return_value = {}  # Empty manifest
         mock_mtime.return_value = 90909
-        mock_exists.return_value = False  # No existing FAISS index
 
-        # Mock FAISS
+        # Mock PGVector
         mock_db = MagicMock()
-        mock_faiss.from_documents.return_value = mock_db
+        mock_pgvector.return_value = mock_db
 
         # Mock the loader instance and its .load() method
         mock_loader_inst = MagicMock()
@@ -165,21 +159,19 @@ class TestIngestWordFormat(unittest.TestCase):
 
     @patch("ingest.Docx2txtLoader")
     @patch("os.path.getmtime")
-    @patch("os.path.exists")
     @patch("os.listdir")
     @patch("ingest.load_manifest")
-    @patch("ingest.FAISS")
-    def test_word_ingestion_path(self, mock_faiss, mock_load, mock_listdir, mock_exists, mock_mtime, mock_word_loader):
+    @patch("ingest.PGVector")
+    def test_word_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_word_loader):
         """Verify that .docx files trigger the Docx2txtLoader."""
         # 1. Setup mocks
         mock_listdir.return_value = ["my_doc.docx"]
         mock_load.return_value = {}  # Empty manifest
         mock_mtime.return_value = 2222222
-        mock_exists.return_value = False  # No existing FAISS index
 
-        # Mock FAISS
+        # Mock PGVector
         mock_db = MagicMock()
-        mock_faiss.from_documents.return_value = mock_db
+        mock_pgvector.return_value = mock_db
 
         # Mock the loader instance and its .load() method
         mock_loader_inst = MagicMock()
@@ -197,30 +189,25 @@ class TestIngestWordFormat(unittest.TestCase):
         print("Word doc ingestion path verified.")
 
 
-class TestFAISSCreation(unittest.TestCase):
-    """Test that FAISS.from_documents is called when vectorstore doesn't exist."""
+class TestPGVectorIngestion(unittest.TestCase):
+    """Test that chunks are added to PGVector during ingestion."""
 
     @patch("ingest.PyPDFLoader")
     @patch("os.path.getmtime")
-    @patch("os.path.exists")
     @patch("os.listdir")
     @patch("ingest.load_manifest")
     @patch("ingest.save_manifest")
-    @patch("ingest.FAISS")
+    @patch("ingest.PGVector")
     @patch("ingest.OpenAIEmbeddings")
-    def test_faiss_creation_from_documents(
-        self, mock_emb, mock_faiss, mock_save, mock_load,
-        mock_listdir, mock_exists, mock_mtime, mock_pdf_loader
+    def test_pgvector_add_documents_called(
+        self, mock_emb, mock_pgvector, mock_save, mock_load,
+        mock_listdir, mock_mtime, mock_pdf_loader
     ):
-        """Verify that FAISS.from_documents is called when vectorstore is None."""
+        """Verify that add_documents is called on PGVector."""
         # 1. Setup mocks
         mock_listdir.return_value = ["new_document.pdf"]
         mock_load.return_value = {}  # Empty manifest
         mock_mtime.return_value = 123456789
-
-        # Key: os.path.exists returns False for FAISS_INDEX_PATH check
-        # This makes vectorstore = None initially
-        mock_exists.return_value = False
 
         # Mock the loader instance
         mock_loader_inst = MagicMock()
@@ -230,21 +217,19 @@ class TestFAISSCreation(unittest.TestCase):
         mock_loader_inst.load.return_value = [mock_doc]
         mock_pdf_loader.return_value = mock_loader_inst
 
-        # Mock FAISS
+        # Mock PGVector
         mock_db = MagicMock()
-        mock_faiss.from_documents.return_value = mock_db
+        mock_pgvector.return_value = mock_db
 
         # 2. Run ingest
         ingest.build_vector_db()
 
-        # 3. Assertions - verify from_documents was called (not add_documents)
-        mock_faiss.from_documents.assert_called_once()
-        # The first argument should be the filtered_chunks
-        call_args = mock_faiss.from_documents.call_args
+        # 3. Assertions - verify chunks were added to PGVector
+        mock_db.add_documents.assert_called_once()
+        call_args = mock_pgvector.call_args
         self.assertIsNotNone(call_args)
-        # Second argument should be embeddings
-        self.assertEqual(call_args[0][1], mock_emb.return_value)
-        print("FAISS creation from documents verified.")
+        self.assertEqual(call_args.kwargs["embeddings"], mock_emb.return_value)
+        print("PGVector ingestion verified.")
 
 
 # TODO: Re-enable in CI/CD pipeline where venv name is consistent

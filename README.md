@@ -35,13 +35,21 @@ pip install -r requirements.txt
 ```
 
 ## 6. Set up environment variables
-Create a `.env` file in the project root and add your OpenAI API key:
+Create a `.env` file in the project root and add your OpenAI API key and Postgres settings:
 ```
 OPENAI_API_KEY=your-api-key-here
+PGVECTOR_CONNECTION=postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian
+PGVECTOR_COLLECTION=personal_docs
 ```
 
-## 7. Run the test script
+## 7. Ensure Postgres has pgvector enabled
+Run this in your Postgres database before ingestion:
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+## 8. Run the test script
 ```bash
 python hello_openai_API.py
 ```
-## 8. You should see a tech-themed haiku appear on the command line
+## 9. You should see a tech-themed haiku appear on the command line
