@@ -59,34 +59,25 @@ class TestMainEntryPoint(unittest.TestCase):
         """Test that main.py properly handles and displays exceptions."""
         python_exe = sys.executable
 
-        # Create a temporary modified main.py that will raise an error
-        # We'll provide input that triggers handle_chat, but we can't easily force an error
-        # So instead, let's test with a query and verify the error handling works if it fails
-
-        # Simpler approach: just send an invalid/problematic query that might fail
-        # But actually, the better test is to verify the exception handling path exists
-        # by checking that asking a question works (happy path is covered)
+        env = os.environ.copy()
+        # Use an unreachable host/port to force fast connection failure.
+        env["PGVECTOR_CONNECTION"] = (
+            "postgresql+psycopg://postgres:postgres@127.0.0.1:1/personal_librarian?connect_timeout=1"
+        )
 
         result = subprocess.run(
             [python_exe, "main.py"],
             capture_output=True,
             text=True,
-            input="What is in my documents?\nexit\n",  # Ask a question then exit
+            input="What is in my documents?\nexit\n",
             cwd=os.path.dirname(os.path.dirname(__file__)),
-            timeout=30
+            timeout=30,
+            env=env,
         )
 
         output = result.stdout + result.stderr
 
-        # The program should either respond successfully OR show error handling
-        # Both cases show the exception handling code works
-        has_agent_response = "Agent:" in output
-        has_error_handling = "Error:" in output
-
-        self.assertTrue(
-            has_agent_response or has_error_handling,
-            "Should show either agent response or error message (both indicate exception handling works)"
-        )
+        self.assertIn("Error:", output, "Expected error handling output when PGVector connection fails")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 langchain
 langchain-openai
 langchain-community
+langchain-postgres
+psycopg[binary]
 pypdf
 unstructured
 docx2txt

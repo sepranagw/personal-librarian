@@ -25,14 +25,17 @@ coverage xml
 ## Troubleshooting
 
 # You may see the following error in your IDE terminal, especially if it is VSCode
-- **chromadb import / DLL errors:** If tests fail with an error importing chromadb_rust_bindings or "DLL load failed", ensure `chromadb` is installed in your environment and the Microsoft Visual C++ Redistributable is present (required by the native bindings).
+- **PGVector / Postgres connection errors:** If tests or local runs fail when initializing the vector store, verify your `PGVECTOR_CONNECTION` value and that your Postgres instance is reachable.
 
-  - Install chromadb in your venv:
+  - Example connection string in `.env`:
     ```bash
-    pip install --no-cache-dir chromadb
+    PGVECTOR_CONNECTION=postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian
     ```
 
-  - If you still see DLL load errors on Windows, install the "Microsoft Visual C++ Redistributable for Visual Studio 2015-2022" (x64) from Microsoft and then reinstall `chromadb`.
+  - Ensure the database has pgvector enabled:
+    ```sql
+    CREATE EXTENSION IF NOT EXISTS vector;
+    ```
 
-  - If you prefer to avoid native bindings, consider configuring a remote or HTTP-backed vector store instead of the local Chroma bindings.
+  - If the app hangs while trying to connect, test the database independently and verify host, port, and credentials.
 
