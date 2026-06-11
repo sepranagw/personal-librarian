@@ -1,6 +1,6 @@
 # What is this project?
 
-## This RAG LLM project is currently a 'template' in Github but I am going to fork from the template into various projects that will take the form of Smart Agents that will likely be publicly available on the internet that can answer questions based on various publicly stored knowledge bases that each a RAG LLM Smart Agent will be trained on
+#### This RAG LLM project is currently a 'template' in Github but I am going to fork from the template into various projects that will take the form of Smart Agents that will likely be publicly available on the internet that can answer questions based on various publicly stored knowledge bases that each RAG LLM Smart Agent will be trained on
 
 # Getting Started
 
