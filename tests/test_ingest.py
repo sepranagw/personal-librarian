@@ -1,9 +1,19 @@
 import os
+import sys
+import runpy
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
 
 from personal_librarian.ingest import load_manifest, build_vector_db
 import personal_librarian.ingest as ingest
+
+
+def cleanup_ingest_module():
+    """Remove ingest module from sys.modules to allow runpy re-execution."""
+    if "personal_librarian.ingest" in sys.modules:
+        del sys.modules["personal_librarian.ingest"]
+    if "personal_librarian" in sys.modules:
+        del sys.modules["personal_librarian"]
 
 @patch.dict(
     os.environ,
@@ -126,12 +136,13 @@ class TestIngestExcelFormat(unittest.TestCase):
 )
 class TestIngestPowerpointFormat(unittest.TestCase):
 
+    @patch("os.path.isfile", return_value=True)
     @patch("personal_librarian.ingest.UnstructuredPowerPointLoader")
     @patch("os.path.getmtime")
     @patch("os.listdir")
     @patch("personal_librarian.ingest.load_manifest")
     @patch("personal_librarian.config.PGVector")
-    def test_powerpoint_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_ppt_loader):
+    def test_powerpoint_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_ppt_loader, mock_isfile):
         """Verify that .pptx files trigger the UnstructuredPowerPointLoader."""
         # 1. Setup mocks
         mock_listdir.return_value = ["jobs_presentation.pptx"]
@@ -193,12 +204,13 @@ class TestIngestPowerpointFormat(unittest.TestCase):
 )
 class TestIngestWordFormat(unittest.TestCase):
 
+    @patch("os.path.isfile", return_value=True)
     @patch("personal_librarian.ingest.Docx2txtLoader")
     @patch("os.path.getmtime")
     @patch("os.listdir")
     @patch("personal_librarian.ingest.load_manifest")
     @patch("personal_librarian.config.PGVector")
-    def test_word_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_word_loader):
+    def test_word_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_word_loader, mock_isfile):
         """Verify that .docx files trigger the Docx2txtLoader."""
         # 1. Setup mocks
         mock_listdir.return_value = ["my_doc.docx"]
@@ -236,6 +248,7 @@ class TestIngestWordFormat(unittest.TestCase):
 class TestPGVectorIngestion(unittest.TestCase):
     """Test that chunks are added to PGVector during ingestion."""
 
+    @patch("os.path.isfile", return_value=True)
     @patch("personal_librarian.ingest.PyPDFLoader")
     @patch("os.path.getmtime")
     @patch("os.listdir")
@@ -245,7 +258,7 @@ class TestPGVectorIngestion(unittest.TestCase):
     @patch("personal_librarian.ingest.OpenAIEmbeddings")
     def test_pgvector_add_documents_called(
         self, mock_emb, mock_pgvector, mock_save, mock_load,
-        mock_listdir, mock_mtime, mock_pdf_loader
+        mock_listdir, mock_mtime, mock_pdf_loader, mock_isfile
     ):
         """Verify that add_documents is called on PGVector."""
         # 1. Setup mocks
@@ -296,6 +309,82 @@ class TestPGVectorConfigValidation(unittest.TestCase):
         with patch.dict(os.environ, {"PGVECTOR_COLLECTION": ""}, clear=False):
             with self.assertRaises(ValueError):
                 ingest.build_vector_db()
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
+class TestIngestionServiceBranches(unittest.TestCase):
+    @patch("langchain_postgres.PGVector")
+    def test_get_pgvector_store_with_config_override(self, mock_pgvector):
+        config = ingest.IngestConfig(
+            pgvector_connection="postgresql+psycopg://postgres:postgres@localhost:5432/custom_db",
+            pgvector_collection="custom_collection",
+        )
+        service = ingest.IngestionService(config)
+        embeddings = MagicMock()
+
+        service.get_pgvector_store(embeddings)
+
+        mock_pgvector.assert_called_once_with(
+            embeddings=embeddings,
+            collection_name="custom_collection",
+            connection="postgresql+psycopg://postgres:postgres@localhost:5432/custom_db",
+            use_jsonb=True,
+        )
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
+class TestIngestEntryPoint(unittest.TestCase):
+    @patch("personal_librarian.ingest.build_vector_db")
+    @patch("builtins.print")
+    def test_main_entry_point_prints_and_runs(
+        self,
+        mock_print,
+        mock_build_vector_db,
+    ):
+        ingest.main()
+
+        mock_print.assert_any_call("--- Starting Ingestion Process ---")
+        mock_build_vector_db.assert_called_once()
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
+class TestIngestModuleDunderMain(unittest.TestCase):
+    @patch("personal_librarian.config.PGVector")
+    @patch("langchain_openai.OpenAIEmbeddings")
+    @patch("os.listdir", return_value=[])
+    @patch("builtins.print")
+    def test_module_dunder_main_executes(
+        self,
+        mock_print,
+        mock_listdir,
+        mock_embeddings,
+        mock_pgvector,
+    ):
+        cleanup_ingest_module()
+        runpy.run_module("personal_librarian.ingest", run_name="__main__")
+
+        mock_print.assert_any_call("--- Starting Ingestion Process ---")
 
 
 # TODO: Re-enable in CI/CD pipeline where venv name is consistent
