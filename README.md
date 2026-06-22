@@ -211,15 +211,33 @@ PGVECTOR_COLLECTION=personal_docs
 
 ---
 
-## 8. Run the test script
+## 8. Install the package in editable mode
+
+This project uses a modern Python package structure (src layout). Install it in editable/development mode:
+
 ```bash
-python hello_openai_API.py
+pip install -e .
 ```
-## 9. You should see a tech-themed haiku appear on the command line
+
+This enables clean imports like `from personal_librarian.ingest import ...` from anywhere in the project, and supports running modules as:
+
+```bash
+python -m personal_librarian.ingest
+python -m personal_librarian.main
+```
 
 ---
 
-## 10. Ingest your documents
+## 9. Run the test script
+```bash
+python hello_openai_API.py
+```
+
+## 10. You should see a tech-themed haiku appear on the command line
+
+---
+
+## 11. Ingest your documents
 
 Create the data directory if it does not exist:
 
@@ -236,19 +254,19 @@ New-Item -ItemType Directory -Path .\data -Force
 Then add your documents (PDF, DOCX, XLSX, PPTX) to the `./data/` folder and run:
 
 ```bash
-python ingest.py
+python -m personal_librarian.ingest
 ```
 
 This processes each file, generates embeddings via OpenAI, and stores them in the pgvector database. Files already processed are tracked in `processed_files.json` and skipped on subsequent runs.
 
-> **Note:** Make sure your pgvector container (or native Postgres) is running before ingesting.
+> **Note:** Make sure your pgvector container is running before ingesting. If using Docker, run `docker start pgvector-db` first (Docker Desktop must also be running).
 
 ---
 
-## 11. Run the agent
+## 12. Run the agent
 
 ```bash
-python main.py
+python -m personal_librarian.main
 ```
 
 The agent will start an interactive session where you can ask questions about your ingested documents. Type `exit` or `quit` to stop.
