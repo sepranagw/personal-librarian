@@ -28,7 +28,7 @@ class TestMainEntryPoint(unittest.TestCase):
         # Use the current Python interpreter (assumes venv is activated or dependencies are installed)
         python_exe = sys.executable
         result = subprocess.run(
-            [python_exe, "main.py"],
+            [python_exe, "-m", "personal_librarian.main"],
             capture_output=True,
             text=True,
             input="exit\n",  # Provide input to exit immediately
@@ -63,7 +63,7 @@ class TestMainEntryPoint(unittest.TestCase):
         )
 
         result = subprocess.run(
-            [python_exe, "main.py"],
+            [python_exe, "-m", "personal_librarian.main"],
             capture_output=True,
             text=True,
             input="What is in my documents?\nexit\n",
