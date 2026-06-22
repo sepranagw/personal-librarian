@@ -28,7 +28,7 @@ class TestIngest(unittest.TestCase):
     @patch("os.listdir")
     @patch("os.path.getmtime")
     @patch("personal_librarian.ingest.PyPDFLoader")
-    @patch("personal_librarian.ingest.PGVector")
+    @patch("personal_librarian.config.PGVector")
     @patch("personal_librarian.ingest.OpenAIEmbeddings")
     @patch("personal_librarian.ingest.load_manifest")
     @patch("personal_librarian.ingest.save_manifest")
@@ -63,7 +63,7 @@ class TestIngest(unittest.TestCase):
 )
 class TestNoDataToIngest(unittest.TestCase):
     @patch("os.listdir")
-    @patch("personal_librarian.ingest.PGVector")
+    @patch("personal_librarian.config.PGVector")
     @patch("builtins.print")
     def test_build_vector_db_logic(self, mock_print, mock_pgvector, mock_listdir):
         mock_listdir.return_value = []
@@ -88,7 +88,7 @@ class TestIngestExcelFormat(unittest.TestCase):
     @patch("os.path.getmtime")
     @patch("os.listdir")
     @patch("personal_librarian.ingest.load_manifest")
-    @patch("personal_librarian.ingest.PGVector")
+    @patch("personal_librarian.config.PGVector")
     def test_excel_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_excel_loader):
         """Verify that .xlsx files trigger the UnstructuredExcelLoader."""
         # 1. Setup mocks
@@ -130,7 +130,7 @@ class TestIngestPowerpointFormat(unittest.TestCase):
     @patch("os.path.getmtime")
     @patch("os.listdir")
     @patch("personal_librarian.ingest.load_manifest")
-    @patch("personal_librarian.ingest.PGVector")
+    @patch("personal_librarian.config.PGVector")
     def test_powerpoint_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_ppt_loader):
         """Verify that .pptx files trigger the UnstructuredPowerPointLoader."""
         # 1. Setup mocks
@@ -197,7 +197,7 @@ class TestIngestWordFormat(unittest.TestCase):
     @patch("os.path.getmtime")
     @patch("os.listdir")
     @patch("personal_librarian.ingest.load_manifest")
-    @patch("personal_librarian.ingest.PGVector")
+    @patch("personal_librarian.config.PGVector")
     def test_word_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_word_loader):
         """Verify that .docx files trigger the Docx2txtLoader."""
         # 1. Setup mocks
@@ -241,7 +241,7 @@ class TestPGVectorIngestion(unittest.TestCase):
     @patch("os.listdir")
     @patch("personal_librarian.ingest.load_manifest")
     @patch("personal_librarian.ingest.save_manifest")
-    @patch("personal_librarian.ingest.PGVector")
+    @patch("personal_librarian.config.PGVector")
     @patch("personal_librarian.ingest.OpenAIEmbeddings")
     def test_pgvector_add_documents_called(
         self, mock_emb, mock_pgvector, mock_save, mock_load,
