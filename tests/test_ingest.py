@@ -1,19 +1,12 @@
 import os
-import sys
 import runpy
+import warnings
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
 
 from personal_librarian.ingest import load_manifest, build_vector_db
 import personal_librarian.ingest as ingest
 
-
-def cleanup_ingest_module():
-    """Remove ingest module from sys.modules to allow runpy re-execution."""
-    if "personal_librarian.ingest" in sys.modules:
-        del sys.modules["personal_librarian.ingest"]
-    if "personal_librarian" in sys.modules:
-        del sys.modules["personal_librarian"]
 
 @patch.dict(
     os.environ,
@@ -135,63 +128,22 @@ class TestIngestExcelFormat(unittest.TestCase):
     clear=False,
 )
 class TestIngestPowerpointFormat(unittest.TestCase):
-
-    @patch("os.path.isfile", return_value=True)
     @patch("personal_librarian.ingest.UnstructuredPowerPointLoader")
-    @patch("os.path.getmtime")
-    @patch("os.listdir")
-    @patch("personal_librarian.ingest.load_manifest")
-    @patch("personal_librarian.config.PGVector")
-    def test_powerpoint_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_ppt_loader, mock_isfile):
+
+    def test_powerpoint_ingestion_path(self, mock_ppt_loader):
         """Verify that .pptx files trigger the UnstructuredPowerPointLoader."""
-        # 1. Setup mocks
-        mock_listdir.return_value = ["jobs_presentation.pptx"]
-        mock_load.return_value = {}  # Empty manifest
-        mock_mtime.return_value = 90909
-
-        # Mock PGVector
-        mock_db = MagicMock()
-        mock_pgvector.return_value = mock_db
-
-        # Mock the loader instance and its .load() method
+        service = ingest.IngestionService(ingest.IngestConfig())
+        file_path = os.path.join("./data", "jobs_presentation.pptx")
         mock_loader_inst = MagicMock()
-        mock_text_doc = MagicMock()
-        mock_text_doc.page_content = (
-            "Job hunt strategy, Networking is the most likely avenue "
-            "for getting an interview"
-        )
-        mock_text_doc.metadata = {"source": "jobs_presentation.pptx"}
-
-        mock_image_doc = MagicMock()
-        mock_image_doc.page_content = "[Image: Career networking diagram]"
-        mock_image_doc.metadata = {
-            "source": "jobs_presentation.pptx",
-            "element_type": "image",
-            "slide_number": 1,
-            "image_name": "networking_diagram.jpg"
-        }
-
-        mock_table_doc = MagicMock()
-        mock_table_doc.page_content = (
-            "Top Companies | Hiring Status | Interview Stage\n"
-            "Google | Active | Technical Round\nMicrosoft | Active | Final Round"
-        )
-        mock_table_doc.metadata = {
-            "source": "jobs_presentation.pptx",
-            "element_type": "table",
-            "slide_number": 2
-        }
-        mock_loader_inst.load.return_value = [mock_text_doc, mock_image_doc, mock_table_doc]
         mock_ppt_loader.return_value = mock_loader_inst
 
-        # 2. Run ingest
-        ingest.build_vector_db()
+        loader = service.yield_loader("jobs_presentation.pptx", file_path)
 
-        # 3. Assertions
+        self.assertIs(loader, mock_loader_inst)
         mock_ppt_loader.assert_called_once_with(
-            os.path.join("./data", "jobs_presentation.pptx"), mode="elements"
+            file_path,
+            mode="elements",
         )
-        print("Powerpoint ingestion path verified.")
 
 
 @patch.dict(
@@ -203,38 +155,19 @@ class TestIngestPowerpointFormat(unittest.TestCase):
     clear=False,
 )
 class TestIngestWordFormat(unittest.TestCase):
-
-    @patch("os.path.isfile", return_value=True)
     @patch("personal_librarian.ingest.Docx2txtLoader")
-    @patch("os.path.getmtime")
-    @patch("os.listdir")
-    @patch("personal_librarian.ingest.load_manifest")
-    @patch("personal_librarian.config.PGVector")
-    def test_word_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_word_loader, mock_isfile):
+
+    def test_word_ingestion_path(self, mock_word_loader):
         """Verify that .docx files trigger the Docx2txtLoader."""
-        # 1. Setup mocks
-        mock_listdir.return_value = ["my_doc.docx"]
-        mock_load.return_value = {}  # Empty manifest
-        mock_mtime.return_value = 2222222
-
-        # Mock PGVector
-        mock_db = MagicMock()
-        mock_pgvector.return_value = mock_db
-
-        # Mock the loader instance and its .load() method
+        service = ingest.IngestionService(ingest.IngestConfig())
+        file_path = os.path.join("./data", "my_doc.docx")
         mock_loader_inst = MagicMock()
-        mock_doc = MagicMock()
-        mock_doc.page_content = "Find the work records in alpha 5"
-        mock_doc.metadata = {"source": "my_doc.docx"}
-        mock_loader_inst.load.return_value = [mock_doc]
         mock_word_loader.return_value = mock_loader_inst
 
-        # 2. Run ingest
-        ingest.build_vector_db()
+        loader = service.yield_loader("my_doc.docx", file_path)
 
-        # 3. Assertions
-        mock_word_loader.assert_called_once_with(os.path.join("./data", "my_doc.docx"))
-        print("Word doc ingestion path verified.")
+        self.assertIs(loader, mock_loader_inst)
+        mock_word_loader.assert_called_once_with(file_path)
 
 
 @patch.dict(
@@ -248,45 +181,31 @@ class TestIngestWordFormat(unittest.TestCase):
 class TestPGVectorIngestion(unittest.TestCase):
     """Test that chunks are added to PGVector during ingestion."""
 
-    @patch("os.path.isfile", return_value=True)
-    @patch("personal_librarian.ingest.PyPDFLoader")
-    @patch("os.path.getmtime")
-    @patch("os.listdir")
-    @patch("personal_librarian.ingest.load_manifest")
-    @patch("personal_librarian.ingest.save_manifest")
-    @patch("personal_librarian.config.PGVector")
-    @patch("personal_librarian.ingest.OpenAIEmbeddings")
-    def test_pgvector_add_documents_called(
-        self, mock_emb, mock_pgvector, mock_save, mock_load,
-        mock_listdir, mock_mtime, mock_pdf_loader, mock_isfile
-    ):
+    def test_pgvector_add_documents_called(self):
         """Verify that add_documents is called on PGVector."""
-        # 1. Setup mocks
-        mock_listdir.return_value = ["new_document.pdf"]
-        mock_load.return_value = {}  # Empty manifest
-        mock_mtime.return_value = 123456789
-
-        # Mock the loader instance
+        service = ingest.IngestionService(ingest.IngestConfig())
         mock_loader_inst = MagicMock()
         mock_doc = MagicMock()
         mock_doc.page_content = "Sample PDF content"
         mock_doc.metadata = {"source": "new_document.pdf"}
         mock_loader_inst.load.return_value = [mock_doc]
-        mock_pdf_loader.return_value = mock_loader_inst
+        mock_vectorstore = MagicMock()
+        manifest = {}
+        mtime = 123456789
 
-        # Mock PGVector
-        mock_db = MagicMock()
-        mock_pgvector.return_value = mock_db
+        with patch.object(service, "chunk_and_filter_docs", return_value=["chunk"]):
+            loaded, vectorstore, updated_manifest = service.load_new_docs(
+                mock_loader_inst,
+                "new_document.pdf",
+                manifest,
+                mtime,
+                mock_vectorstore,
+            )
 
-        # 2. Run ingest
-        ingest.build_vector_db()
-
-        # 3. Assertions - verify chunks were added to PGVector
-        mock_db.add_documents.assert_called_once()
-        call_args = mock_pgvector.call_args
-        self.assertIsNotNone(call_args)
-        self.assertEqual(call_args.kwargs["embeddings"], mock_emb.return_value)
-        print("PGVector ingestion verified.")
+        self.assertTrue(loaded)
+        self.assertIs(vectorstore, mock_vectorstore)
+        self.assertEqual(updated_manifest["new_document.pdf"], mtime)
+        mock_vectorstore.add_documents.assert_called_once_with(["chunk"])
 
 
 @patch.dict(
@@ -381,8 +300,13 @@ class TestIngestModuleDunderMain(unittest.TestCase):
         mock_embeddings,
         mock_pgvector,
     ):
-        cleanup_ingest_module()
-        runpy.run_module("personal_librarian.ingest", run_name="__main__")
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=r"'personal_librarian.ingest' found in sys.modules",
+                category=RuntimeWarning,
+            )
+            runpy.run_module("personal_librarian.ingest", run_name="__main__")
 
         mock_print.assert_any_call("--- Starting Ingestion Process ---")
 

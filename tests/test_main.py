@@ -1,20 +1,13 @@
 import os
 import sys
 import runpy
+import warnings
 import subprocess
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 
 import personal_librarian.main as main
-
-
-def cleanup_main_module():
-    """Remove main module from sys.modules to allow runpy re-execution."""
-    if "personal_librarian.main" in sys.modules:
-        del sys.modules["personal_librarian.main"]
-    if "personal_librarian" in sys.modules:
-        del sys.modules["personal_librarian"]
 
 
 class TestMain(unittest.TestCase):
@@ -89,8 +82,13 @@ class TestMainEntryPoint(unittest.TestCase):
     @patch("builtins.input", return_value="quit")
     @patch("builtins.print")
     def test_module_dunder_main_executes(self, mock_print, mock_input, mock_chat_openai):
-        cleanup_main_module()
-        runpy.run_module("personal_librarian.main", run_name="__main__")
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=r"'personal_librarian.main' found in sys.modules",
+                category=RuntimeWarning,
+            )
+            runpy.run_module("personal_librarian.main", run_name="__main__")
 
         mock_print.assert_any_call("--- Unified LangChain Agent Active ---")
 
