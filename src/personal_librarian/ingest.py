@@ -153,6 +153,10 @@ def build_vector_db():
     service.run()
 
 
-if __name__ == "__main__":
+def main():
     print("--- Starting Ingestion Process ---")
     build_vector_db()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,9 +1,19 @@
 import os
+import sys
+import runpy
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
 
 from personal_librarian.ingest import load_manifest, build_vector_db
 import personal_librarian.ingest as ingest
+
+
+def cleanup_ingest_module():
+    """Remove ingest module from sys.modules to allow runpy re-execution."""
+    if "personal_librarian.ingest" in sys.modules:
+        del sys.modules["personal_librarian.ingest"]
+    if "personal_librarian" in sys.modules:
+        del sys.modules["personal_librarian"]
 
 @patch.dict(
     os.environ,
@@ -296,6 +306,74 @@ class TestPGVectorConfigValidation(unittest.TestCase):
         with patch.dict(os.environ, {"PGVECTOR_COLLECTION": ""}, clear=False):
             with self.assertRaises(ValueError):
                 ingest.build_vector_db()
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
+class TestIngestionServiceBranches(unittest.TestCase):
+    @patch("langchain_postgres.PGVector")
+    def test_get_pgvector_store_with_config_override(self, mock_pgvector):
+        config = ingest.IngestConfig(
+            pgvector_connection="postgresql+psycopg://postgres:postgres@localhost:5432/custom_db",
+            pgvector_collection="custom_collection",
+        )
+        service = ingest.IngestionService(config)
+        embeddings = MagicMock()
+
+        service.get_pgvector_store(embeddings)
+
+        mock_pgvector.assert_called_once_with(
+            embeddings=embeddings,
+            collection_name="custom_collection",
+            connection="postgresql+psycopg://postgres:postgres@localhost:5432/custom_db",
+            use_jsonb=True,
+        )
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
+class TestIngestEntryPoint(unittest.TestCase):
+    @patch("personal_librarian.ingest.build_vector_db")
+    @patch("builtins.print")
+    def test_main_entry_point_prints_and_runs(
+        self,
+        mock_print,
+        mock_build_vector_db,
+    ):
+        ingest.main()
+
+        mock_print.assert_any_call("--- Starting Ingestion Process ---")
+        mock_build_vector_db.assert_called_once()
+
+
+class TestIngestModuleDunderMain(unittest.TestCase):
+    @patch("personal_librarian.config.PGVector")
+    @patch("langchain_openai.OpenAIEmbeddings")
+    @patch("os.listdir", return_value=[])
+    @patch("builtins.print")
+    def test_module_dunder_main_executes(
+        self,
+        mock_print,
+        mock_listdir,
+        mock_embeddings,
+        mock_pgvector,
+    ):
+        cleanup_ingest_module()
+        runpy.run_module("personal_librarian.ingest", run_name="__main__")
+
+        mock_print.assert_any_call("--- Starting Ingestion Process ---")
 
 
 # TODO: Re-enable in CI/CD pipeline where venv name is consistent

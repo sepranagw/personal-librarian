@@ -46,7 +46,7 @@ def handle_chat(user_input):
     }
 
 
-if __name__ == "__main__":
+def main():
     print("--- Unified LangChain Agent Active ---")
     print("\nWelcome to your Smart Agent Personal Assistant.")
     print("\nAsk me any questions regarding your documents.")
@@ -65,3 +65,7 @@ if __name__ == "__main__":
             print(f"\nError: {e}")
             import traceback
             traceback.print_exc()
+
+
+if __name__ == "__main__":
+    main()
