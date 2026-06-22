@@ -136,12 +136,13 @@ class TestIngestExcelFormat(unittest.TestCase):
 )
 class TestIngestPowerpointFormat(unittest.TestCase):
 
+    @patch("os.path.isfile", return_value=True)
     @patch("personal_librarian.ingest.UnstructuredPowerPointLoader")
     @patch("os.path.getmtime")
     @patch("os.listdir")
     @patch("personal_librarian.ingest.load_manifest")
     @patch("personal_librarian.config.PGVector")
-    def test_powerpoint_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_ppt_loader):
+    def test_powerpoint_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_ppt_loader, mock_isfile):
         """Verify that .pptx files trigger the UnstructuredPowerPointLoader."""
         # 1. Setup mocks
         mock_listdir.return_value = ["jobs_presentation.pptx"]
@@ -203,12 +204,13 @@ class TestIngestPowerpointFormat(unittest.TestCase):
 )
 class TestIngestWordFormat(unittest.TestCase):
 
+    @patch("os.path.isfile", return_value=True)
     @patch("personal_librarian.ingest.Docx2txtLoader")
     @patch("os.path.getmtime")
     @patch("os.listdir")
     @patch("personal_librarian.ingest.load_manifest")
     @patch("personal_librarian.config.PGVector")
-    def test_word_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_word_loader):
+    def test_word_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_word_loader, mock_isfile):
         """Verify that .docx files trigger the Docx2txtLoader."""
         # 1. Setup mocks
         mock_listdir.return_value = ["my_doc.docx"]
@@ -246,6 +248,7 @@ class TestIngestWordFormat(unittest.TestCase):
 class TestPGVectorIngestion(unittest.TestCase):
     """Test that chunks are added to PGVector during ingestion."""
 
+    @patch("os.path.isfile", return_value=True)
     @patch("personal_librarian.ingest.PyPDFLoader")
     @patch("os.path.getmtime")
     @patch("os.listdir")
@@ -255,7 +258,7 @@ class TestPGVectorIngestion(unittest.TestCase):
     @patch("personal_librarian.ingest.OpenAIEmbeddings")
     def test_pgvector_add_documents_called(
         self, mock_emb, mock_pgvector, mock_save, mock_load,
-        mock_listdir, mock_mtime, mock_pdf_loader
+        mock_listdir, mock_mtime, mock_pdf_loader, mock_isfile
     ):
         """Verify that add_documents is called on PGVector."""
         # 1. Setup mocks
@@ -358,6 +361,14 @@ class TestIngestEntryPoint(unittest.TestCase):
         mock_build_vector_db.assert_called_once()
 
 
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
 class TestIngestModuleDunderMain(unittest.TestCase):
     @patch("personal_librarian.config.PGVector")
     @patch("langchain_openai.OpenAIEmbeddings")
