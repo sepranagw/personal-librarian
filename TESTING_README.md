@@ -1,26 +1,28 @@
 # How to run unit tests
 
-## 1. Open a bash or powershell terminal. Install coverage if you haven't already
+## 1. Ensure dependencies are installed
+The testing dependencies (pytest and pytest-cov) are already specified in `pyproject.toml` and `requirements-dev.txt`.
+
 ```bash
-pip install coverage
+pip install -e ".[dev]"
 ```
 
-## 2. Run the following command with coverage.  Results will show you how many tests passed. OK means they all passed.
+## 2. Run tests with coverage
 ```bash
-coverage run -m unittest discover tests
+pytest --cov=src/personal_librarian --cov-report=term-missing
 ```
 
-## 3. Run the following to see your code coverage for each production code file
+## 3. Generate HTML coverage report
 ```bash
-coverage report
+pytest --cov=src/personal_librarian --cov-report=html
 ```
 
-## 3. Run the following to write an XML coverage report
+## 4. Generate XML coverage report
 ```bash
-coverage xml
+pytest --cov=src/personal_librarian --cov-report=xml
 ```
 
-## 4. Optional: If you have Coverage Gutters installed, you can use it to parse coverage.xml to visually display code coverage for every Python script
+## 5. Optional: If you have Coverage Gutters installed, you can use it to parse coverage.xml to visually display code coverage for every Python script
 
 ## Troubleshooting
 

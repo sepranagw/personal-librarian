@@ -13,7 +13,7 @@ from personal_librarian.tools import get_retriever_tool
     clear=False,
 )
 class TestTools(unittest.TestCase):
-    @patch("personal_librarian.tools.PGVector")
+    @patch("personal_librarian.config.PGVector")
     @patch("personal_librarian.tools.OpenAIEmbeddings")
     def test_tool_definition(self, mock_embeddings, mock_pgvector):
         # Mock PGVector and its retriever
@@ -31,7 +31,7 @@ class TestTools(unittest.TestCase):
         # Verify PGVector was initialized
         mock_pgvector.assert_called_once()
 
-    @patch("personal_librarian.tools.PGVector")
+    @patch("personal_librarian.config.PGVector")
     @patch("personal_librarian.tools.OpenAIEmbeddings")
     def test_tool_definition_missing_pgvector_connection(self, mock_embeddings, mock_pgvector):
         with patch.dict(os.environ, {"PGVECTOR_CONNECTION": ""}, clear=False):
@@ -40,7 +40,7 @@ class TestTools(unittest.TestCase):
 
         mock_pgvector.assert_not_called()
 
-    @patch("personal_librarian.tools.PGVector")
+    @patch("personal_librarian.config.PGVector")
     @patch("personal_librarian.tools.OpenAIEmbeddings")
     def test_tool_definition_missing_pgvector_collection(self, mock_embeddings, mock_pgvector):
         with patch.dict(os.environ, {"PGVECTOR_COLLECTION": ""}, clear=False):

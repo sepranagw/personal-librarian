@@ -9,31 +9,15 @@ from langchain_community.document_loaders import (
 )
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain_postgres import PGVector
 from langchain_community.vectorstores.utils import filter_complex_metadata
 from dotenv import load_dotenv
+
+from personal_librarian.config import get_pgvector_store as config_get_pgvector_store
+from personal_librarian.config import require_pgvector_collection
 
 load_dotenv()
 
 MANIFEST_FILE = "processed_files.json"
-
-
-def _require_pgvector_connection():
-    connection = os.getenv("PGVECTOR_CONNECTION")
-    if not connection:
-        raise ValueError(
-            "PGVECTOR_CONNECTION is required. Set it in your environment or .env file."
-        )
-    return connection
-
-
-def _require_pgvector_collection():
-    collection = os.getenv("PGVECTOR_COLLECTION")
-    if not collection:
-        raise ValueError(
-            "PGVECTOR_COLLECTION is required. Set it in your environment or .env file."
-        )
-    return collection
 
 
 @dataclass(frozen=True)
@@ -88,14 +72,18 @@ class IngestionService:
         return filter_complex_metadata(chunks)
 
     def get_pgvector_store(self, embeddings):
-        connection = self.config.pgvector_connection or _require_pgvector_connection()
-        collection_name = self.config.pgvector_collection or _require_pgvector_collection()
-        return PGVector(
-            embeddings=embeddings,
-            collection_name=collection_name,
-            connection=connection,
-            use_jsonb=True,
-        )
+        # Use the config module's function for environment-based initialization,
+        # or allow override via config for testing
+        if self.config.pgvector_connection and self.config.pgvector_collection:
+            from langchain_postgres import PGVector
+            return PGVector(
+                embeddings=embeddings,
+                collection_name=self.config.pgvector_collection,
+                connection=self.config.pgvector_connection,
+                use_jsonb=True,
+            )
+        # Otherwise use the shared config function (validates environment)
+        return config_get_pgvector_store(embeddings)
 
     def load_new_docs(self, loader, filename, manifest, mtime, vectorstore):
         print(f"Processing: {filename}")
@@ -137,7 +125,7 @@ class IngestionService:
                 self.manifest_saver(manifest)
             print(
                 f"Database updated in PGVector collection "
-                f"'{self.config.pgvector_collection or _require_pgvector_collection()}'"
+                f"'{self.config.pgvector_collection or require_pgvector_collection()}'"
             )
         else:
             print("No new changes detected.")
@@ -155,18 +143,6 @@ def load_manifest():
 def save_manifest(manifest):
     _DEFAULT_MANIFEST_STORE.save(manifest)
 
-def yield_loader(filename, file_path):
-    return _DEFAULT_SERVICE.yield_loader(filename, file_path)
-
-def chunk_and_filter_docs(docs):
-    return _DEFAULT_SERVICE.chunk_and_filter_docs(docs)
-
-
-def get_pgvector_store(embeddings):
-    return _DEFAULT_SERVICE.get_pgvector_store(embeddings)
-
-def load_new_docs(loader, filename, manifest, mtime, vectorstore):
-    return _DEFAULT_SERVICE.load_new_docs(loader, filename, manifest, mtime, vectorstore)
 
 def build_vector_db():
     service = IngestionService(
