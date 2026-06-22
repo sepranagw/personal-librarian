@@ -1,14 +1,18 @@
 import os
-import sys
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from personal_librarian.ingest import load_manifest, build_vector_db
+import personal_librarian.ingest as ingest
 
-from ingest import load_manifest, build_vector_db  # noqa: E402
-import ingest  # noqa: E402
-
-
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
 class TestIngest(unittest.TestCase):
     @patch("os.path.exists")
     def test_load_manifest_empty(self, mock_exists):
@@ -23,11 +27,11 @@ class TestIngest(unittest.TestCase):
 
     @patch("os.listdir")
     @patch("os.path.getmtime")
-    @patch("ingest.PyPDFLoader")
-    @patch("ingest.PGVector")
-    @patch("ingest.OpenAIEmbeddings")
-    @patch("ingest.load_manifest")
-    @patch("ingest.save_manifest")
+    @patch("personal_librarian.ingest.PyPDFLoader")
+    @patch("personal_librarian.ingest.PGVector")
+    @patch("personal_librarian.ingest.OpenAIEmbeddings")
+    @patch("personal_librarian.ingest.load_manifest")
+    @patch("personal_librarian.ingest.save_manifest")
     def test_build_vector_db_logic(
         self, mock_save, mock_load, mock_emb, mock_pgvector, mock_pdf,
         mock_mtime, mock_listdir
@@ -49,9 +53,17 @@ class TestIngest(unittest.TestCase):
         mock_save.assert_called_once()
 
 
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
 class TestNoDataToIngest(unittest.TestCase):
     @patch("os.listdir")
-    @patch("ingest.PGVector")
+    @patch("personal_librarian.ingest.PGVector")
     @patch("builtins.print")
     def test_build_vector_db_logic(self, mock_print, mock_pgvector, mock_listdir):
         mock_listdir.return_value = []
@@ -62,13 +74,21 @@ class TestNoDataToIngest(unittest.TestCase):
         mock_print.assert_called_with("No new changes detected.")
 
 
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
 class TestIngestExcelFormat(unittest.TestCase):
 
-    @patch("ingest.UnstructuredExcelLoader")
+    @patch("personal_librarian.ingest.UnstructuredExcelLoader")
     @patch("os.path.getmtime")
     @patch("os.listdir")
-    @patch("ingest.load_manifest")
-    @patch("ingest.PGVector")
+    @patch("personal_librarian.ingest.load_manifest")
+    @patch("personal_librarian.ingest.PGVector")
     def test_excel_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_excel_loader):
         """Verify that .xlsx files trigger the UnstructuredExcelLoader."""
         # 1. Setup mocks
@@ -96,13 +116,21 @@ class TestIngestExcelFormat(unittest.TestCase):
         print("Excel ingestion path verified.")
 
 
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
 class TestIngestPowerpointFormat(unittest.TestCase):
 
-    @patch("ingest.UnstructuredPowerPointLoader")
+    @patch("personal_librarian.ingest.UnstructuredPowerPointLoader")
     @patch("os.path.getmtime")
     @patch("os.listdir")
-    @patch("ingest.load_manifest")
-    @patch("ingest.PGVector")
+    @patch("personal_librarian.ingest.load_manifest")
+    @patch("personal_librarian.ingest.PGVector")
     def test_powerpoint_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_ppt_loader):
         """Verify that .pptx files trigger the UnstructuredPowerPointLoader."""
         # 1. Setup mocks
@@ -155,13 +183,21 @@ class TestIngestPowerpointFormat(unittest.TestCase):
         print("Powerpoint ingestion path verified.")
 
 
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
 class TestIngestWordFormat(unittest.TestCase):
 
-    @patch("ingest.Docx2txtLoader")
+    @patch("personal_librarian.ingest.Docx2txtLoader")
     @patch("os.path.getmtime")
     @patch("os.listdir")
-    @patch("ingest.load_manifest")
-    @patch("ingest.PGVector")
+    @patch("personal_librarian.ingest.load_manifest")
+    @patch("personal_librarian.ingest.PGVector")
     def test_word_ingestion_path(self, mock_pgvector, mock_load, mock_listdir, mock_mtime, mock_word_loader):
         """Verify that .docx files trigger the Docx2txtLoader."""
         # 1. Setup mocks
@@ -189,16 +225,24 @@ class TestIngestWordFormat(unittest.TestCase):
         print("Word doc ingestion path verified.")
 
 
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
 class TestPGVectorIngestion(unittest.TestCase):
     """Test that chunks are added to PGVector during ingestion."""
 
-    @patch("ingest.PyPDFLoader")
+    @patch("personal_librarian.ingest.PyPDFLoader")
     @patch("os.path.getmtime")
     @patch("os.listdir")
-    @patch("ingest.load_manifest")
-    @patch("ingest.save_manifest")
-    @patch("ingest.PGVector")
-    @patch("ingest.OpenAIEmbeddings")
+    @patch("personal_librarian.ingest.load_manifest")
+    @patch("personal_librarian.ingest.save_manifest")
+    @patch("personal_librarian.ingest.PGVector")
+    @patch("personal_librarian.ingest.OpenAIEmbeddings")
     def test_pgvector_add_documents_called(
         self, mock_emb, mock_pgvector, mock_save, mock_load,
         mock_listdir, mock_mtime, mock_pdf_loader
@@ -230,6 +274,28 @@ class TestPGVectorIngestion(unittest.TestCase):
         self.assertIsNotNone(call_args)
         self.assertEqual(call_args.kwargs["embeddings"], mock_emb.return_value)
         print("PGVector ingestion verified.")
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
+class TestPGVectorConfigValidation(unittest.TestCase):
+    @patch("personal_librarian.ingest.OpenAIEmbeddings")
+    def test_build_vector_db_missing_pgvector_connection(self, mock_embeddings):
+        with patch.dict(os.environ, {"PGVECTOR_CONNECTION": ""}, clear=False):
+            with self.assertRaises(ValueError):
+                ingest.build_vector_db()
+
+    @patch("personal_librarian.ingest.OpenAIEmbeddings")
+    def test_build_vector_db_missing_pgvector_collection(self, mock_embeddings):
+        with patch.dict(os.environ, {"PGVECTOR_COLLECTION": ""}, clear=False):
+            with self.assertRaises(ValueError):
+                ingest.build_vector_db()
 
 
 # TODO: Re-enable in CI/CD pipeline where venv name is consistent

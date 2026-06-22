@@ -1,16 +1,20 @@
 import os
-import sys
 import unittest
 from unittest.mock import patch, MagicMock
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from personal_librarian.tools import get_retriever_tool
 
-from tools import get_retriever_tool  # noqa: E402
-
-
+@patch.dict(
+    os.environ,
+    {
+        "PGVECTOR_CONNECTION": "postgresql+psycopg://postgres:postgres@localhost:5432/personal_librarian",
+        "PGVECTOR_COLLECTION": "personal_docs",
+    },
+    clear=False,
+)
 class TestTools(unittest.TestCase):
-    @patch("tools.PGVector")
-    @patch("tools.OpenAIEmbeddings")
+    @patch("personal_librarian.tools.PGVector")
+    @patch("personal_librarian.tools.OpenAIEmbeddings")
     def test_tool_definition(self, mock_embeddings, mock_pgvector):
         # Mock PGVector and its retriever
         mock_db = MagicMock()
@@ -26,6 +30,24 @@ class TestTools(unittest.TestCase):
 
         # Verify PGVector was initialized
         mock_pgvector.assert_called_once()
+
+    @patch("personal_librarian.tools.PGVector")
+    @patch("personal_librarian.tools.OpenAIEmbeddings")
+    def test_tool_definition_missing_pgvector_connection(self, mock_embeddings, mock_pgvector):
+        with patch.dict(os.environ, {"PGVECTOR_CONNECTION": ""}, clear=False):
+            with self.assertRaises(ValueError):
+                get_retriever_tool()
+
+        mock_pgvector.assert_not_called()
+
+    @patch("personal_librarian.tools.PGVector")
+    @patch("personal_librarian.tools.OpenAIEmbeddings")
+    def test_tool_definition_missing_pgvector_collection(self, mock_embeddings, mock_pgvector):
+        with patch.dict(os.environ, {"PGVECTOR_COLLECTION": ""}, clear=False):
+            with self.assertRaises(ValueError):
+                get_retriever_tool()
+
+        mock_pgvector.assert_not_called()
 
 
 if __name__ == "__main__":
