@@ -257,6 +257,33 @@ class TestIngestionServiceBranches(unittest.TestCase):
             use_jsonb=True,
         )
 
+    def test_enrich_metadata_sets_source_page_and_date(self):
+        config = ingest.IngestConfig()
+        service = ingest.IngestionService(config)
+        mock_doc = MagicMock()
+        mock_doc.metadata = {
+            "page_number": 3,
+            "date": "2026-01-15",
+        }
+
+        enriched_docs = service.enrich_metadata(
+            [mock_doc],
+            "sample.pdf",
+            "./data/sample.pdf",
+            1700000000.0,
+        )
+
+        self.assertEqual(len(enriched_docs), 1)
+        metadata = enriched_docs[0].metadata
+        self.assertEqual(metadata["source_file"], "sample.pdf")
+        self.assertEqual(metadata["source_path"], "./data/sample.pdf")
+        self.assertEqual(metadata["source_type"], ".pdf")
+        self.assertEqual(metadata["source"], "sample.pdf")
+        self.assertEqual(metadata["page"], "3")
+        self.assertEqual(metadata["doc_date"], "2026-01-15")
+        self.assertIn("ingested_at", metadata)
+        self.assertIn("source_mtime", metadata)
+
 
 @patch.dict(
     os.environ,

@@ -1,6 +1,7 @@
 import os
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from langchain_community.document_loaders import (
     PyPDFLoader,
     Docx2txtLoader,
@@ -71,6 +72,45 @@ class IngestionService:
         chunks = text_splitter.split_documents(docs)
         return filter_complex_metadata(chunks)
 
+    def _extract_page(self, metadata):
+        page = metadata.get("page")
+        if page is None:
+            page = metadata.get("page_number")
+        if page is None:
+            page = metadata.get("slide_number")
+        return page
+
+    def _extract_doc_date(self, metadata):
+        for key in ["doc_date", "date", "created", "modified", "last_modified"]:
+            value = metadata.get(key)
+            if value:
+                return str(value)
+        return None
+
+    def enrich_metadata(self, docs, filename, file_path, mtime):
+        ingested_at = datetime.now(timezone.utc).isoformat()
+        source_mtime = datetime.fromtimestamp(mtime, tz=timezone.utc).isoformat()
+        source_type = os.path.splitext(filename)[1].lower()
+
+        for doc in docs:
+            metadata = dict(doc.metadata or {})
+            metadata["source"] = str(metadata.get("source") or filename)
+            metadata["source_file"] = filename
+            metadata["source_path"] = file_path
+            metadata["source_type"] = source_type
+            metadata["ingested_at"] = ingested_at
+            metadata["source_mtime"] = source_mtime
+
+            page = self._extract_page(metadata)
+            metadata["page"] = "" if page is None else str(page)
+
+            doc_date = self._extract_doc_date(metadata)
+            metadata["doc_date"] = "" if doc_date is None else doc_date
+
+            doc.metadata = metadata
+
+        return docs
+
     def get_pgvector_store(self, embeddings):
         # Use the config module's function for environment-based initialization,
         # or allow override via config for testing
@@ -87,7 +127,9 @@ class IngestionService:
 
     def load_new_docs(self, loader, filename, manifest, mtime, vectorstore):
         print(f"Processing: {filename}")
+        file_path = os.path.join(self.config.source_dir, filename)
         docs = loader.load()
+        docs = self.enrich_metadata(docs, filename, file_path, mtime)
         filtered_chunks = self.chunk_and_filter_docs(docs)
 
         vectorstore.add_documents(filtered_chunks)

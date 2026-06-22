@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+import re
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
 from personal_librarian.tools import get_retriever_tool
@@ -9,6 +10,26 @@ model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 # Initialize tools and agent lazily to avoid import-time errors
 _agent = None
+
+
+def _extract_citations(tool_content):
+    source_matches = re.findall(r"^Source:\s*(.+)$", tool_content, re.MULTILINE)
+    page_matches = re.findall(r"^Page:\s*(.+)$", tool_content, re.MULTILINE)
+    date_matches = re.findall(r"^Date:\s*(.+)$", tool_content, re.MULTILINE)
+
+    citations = []
+    for i, source in enumerate(source_matches):
+        page = page_matches[i] if i < len(page_matches) else ""
+        date = date_matches[i] if i < len(date_matches) else ""
+
+        citation = f"Source: {source.strip()}"
+        if page and page.strip():
+            citation += f", Page: {page.strip()}"
+        if date and date.strip():
+            citation += f", Date: {date.strip()}"
+        citations.append(citation)
+
+    return citations
 
 
 def get_agent():
@@ -37,8 +58,13 @@ def handle_chat(user_input):
     sources = set()
     for msg in result["messages"]:
         if hasattr(msg, "name") and msg.name == "search_personal_docs":
-            # We add a marker to know this came from our specific tool
-            sources.add(f"Retrieved from: {msg.name}")
+            content = getattr(msg, "content", "")
+            citations = _extract_citations(content)
+            if citations:
+                for citation in citations:
+                    sources.add(citation)
+            else:
+                sources.add(f"Retrieved from: {msg.name}")
 
     return {
         "answer": final_answer,
