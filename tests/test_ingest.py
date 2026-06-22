@@ -1,19 +1,12 @@
 import os
-import sys
 import runpy
+import warnings
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
 
 from personal_librarian.ingest import load_manifest, build_vector_db
 import personal_librarian.ingest as ingest
 
-
-def cleanup_ingest_module():
-    """Remove ingest module from sys.modules to allow runpy re-execution."""
-    if "personal_librarian.ingest" in sys.modules:
-        del sys.modules["personal_librarian.ingest"]
-    if "personal_librarian" in sys.modules:
-        del sys.modules["personal_librarian"]
 
 @patch.dict(
     os.environ,
@@ -381,8 +374,13 @@ class TestIngestModuleDunderMain(unittest.TestCase):
         mock_embeddings,
         mock_pgvector,
     ):
-        cleanup_ingest_module()
-        runpy.run_module("personal_librarian.ingest", run_name="__main__")
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=r"'personal_librarian.ingest' found in sys.modules",
+                category=RuntimeWarning,
+            )
+            runpy.run_module("personal_librarian.ingest", run_name="__main__")
 
         mock_print.assert_any_call("--- Starting Ingestion Process ---")
 

@@ -4,7 +4,6 @@ Consolidates environment variable handling and vector store initialization.
 """
 import os
 from langchain_postgres import PGVector
-from langchain_openai import OpenAIEmbeddings
 
 
 def require_pgvector_connection():
@@ -30,10 +29,10 @@ def require_pgvector_collection():
 def get_pgvector_store(embeddings):
     """
     Initialize and return a PGVector store for vector embeddings.
-    
+
     Args:
         embeddings: OpenAIEmbeddings instance
-        
+
     Returns:
         PGVector instance configured with environment settings
     """

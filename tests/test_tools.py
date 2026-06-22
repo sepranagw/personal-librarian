@@ -4,6 +4,7 @@ from unittest.mock import patch, MagicMock
 
 from personal_librarian.tools import get_retriever_tool
 
+
 @patch.dict(
     os.environ,
     {
