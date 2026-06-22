@@ -66,6 +66,33 @@ class TestMain(unittest.TestCase):
         self.assertEqual(result["answer"], "Only answer")
         self.assertEqual(result["sources"], [])
 
+    @patch("personal_librarian.main.get_agent")
+    def test_handle_chat_with_citations(self, mock_get_agent):
+        tool_message = SimpleNamespace(
+            name="search_personal_docs",
+            content=(
+                "Source: resume.pdf\n"
+                "Path: ./data/resume.pdf\n"
+                "Page: 2\n"
+                "Date: 2026-01-15\n"
+                "Content:\nExample chunk"
+            ),
+        )
+        final_message = SimpleNamespace(content="Answer with citation")
+
+        mock_agent = MagicMock()
+        mock_agent.invoke.return_value = {
+            "messages": [tool_message, final_message]
+        }
+        mock_get_agent.return_value = mock_agent
+
+        result = main.handle_chat("What did my resume say?")
+        self.assertEqual(result["answer"], "Answer with citation")
+        self.assertIn(
+            "Source: resume.pdf, Page: 2, Date: 2026-01-15",
+            result["sources"],
+        )
+
     def test_main_block_functions_exist(self):
         """Test that main block functions exist and are callable."""
         # Verify the module has the expected functions
