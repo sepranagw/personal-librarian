@@ -6,7 +6,13 @@ from personal_librarian.tools import get_retriever_tool
 
 
 load_dotenv()
-model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+model = ChatOpenAI(model="gpt-5.4-mini", temperature=0)
+
+SYSTEM_PROMPT = (
+    "You are a polite assistant who wants to help the user with their inquiry. "
+    "Your responses should only remain pertenent to inquiries relating to <insert topic>."
+    "Politely redirect users to look elsewhere if their inquiries do not relate to <insert topic>."
+)
 
 # Initialize tools and agent lazily to avoid import-time errors
 _agent = None
@@ -37,7 +43,7 @@ def get_agent():
     global _agent
     if _agent is None:
         tools = [get_retriever_tool()]
-        _agent = create_agent(model, tools)
+        _agent = create_agent(model, tools, system_prompt=SYSTEM_PROMPT)
     return _agent
 
 

@@ -25,8 +25,8 @@ MANIFEST_FILE = "processed_files.json"
 class IngestConfig:
     manifest_file: str = MANIFEST_FILE
     source_dir: str = "./data"
-    chunk_size: int = 1000
-    chunk_overlap: int = 100
+    chunk_size: int = 2000
+    chunk_overlap: int = 400
     pgvector_connection: str | None = None
     pgvector_collection: str | None = None
 
@@ -138,7 +138,7 @@ class IngestionService:
 
     def run(self):
         manifest = self.manifest_loader() if self.manifest_loader else {}
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
         vectorstore = self.get_pgvector_store(embeddings)
 
         new_docs_loaded = False

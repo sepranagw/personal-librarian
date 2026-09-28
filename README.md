@@ -236,8 +236,33 @@ python hello_openai_API.py
 ## 10. You should see a tech-themed haiku appear on the command line
 
 ---
+## 11. Tune your RAG to the type of information you will process
 
-## 11. Ingest your documents
+Adjust your RAG LLM ingestion specifications depending on the nature of your documents here in
+ingest.py; the following are the default values for descriptinve, informational document ingestion,
+
+ingest.py, lines 28-29:
+```bash
+@dataclass(frozen=True)
+class IngestConfig:
+    ...
+    chunk_size: int = 2000
+    chunk_overlap: int = 400
+    ...
+```
+
+Adjust your RAG LLM ingestion specifications depending on the topic of your smart agent here in
+main.py; the following is a default smart agent identity and topic description, you will need to modify it.
+
+main.py, lines 12-14:
+```bash
+SYSTEM_PROMPT = (
+    "You are a polite assistant who wants to help the user with their inquiry. "
+    "Your responses should only remain pertenent to inquiries relating to <insert topic>."
+    "Politely redirect users to look elsewhere if their inquiries do not relate to <insert topic>."
+)
+```
+## 12. Ingest your documents
 
 Create the data directory if it does not exist:
 
@@ -263,7 +288,7 @@ This processes each file, generates embeddings via OpenAI, and stores them in th
 
 ---
 
-## 12. Run the agent
+## 13. Run the agent
 
 ```bash
 python -m personal_librarian.main

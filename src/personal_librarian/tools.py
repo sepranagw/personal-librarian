@@ -9,7 +9,7 @@ load_dotenv()
 
 
 def get_retriever_tool():
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
     vectorstore = get_pgvector_store(embeddings)
     retriever = vectorstore.as_retriever()
 
@@ -34,7 +34,7 @@ def get_retriever_tool():
 
 
 def get_retriever_tool_with_filter(metadata_filter, k=4):
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
     vectorstore = get_pgvector_store(embeddings)
     search_kwargs = {"k": k, "filter": metadata_filter}
     retriever = vectorstore.as_retriever(search_kwargs=search_kwargs)
