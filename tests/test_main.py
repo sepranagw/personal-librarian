@@ -31,7 +31,12 @@ class TestMain(unittest.TestCase):
         self.assertIs(agent_first, mock_agent)
         self.assertIs(agent_second, mock_agent)
         mock_get_retriever_tool.assert_called_once()
-        mock_create_agent.assert_called_once_with(main.model, [mock_get_retriever_tool.return_value])
+        mock_create_agent.assert_called_once()
+        args, kwargs = mock_create_agent.call_args
+        self.assertIs(args[0], main.model)
+        self.assertEqual(args[1], [mock_get_retriever_tool.return_value])
+        self.assertEqual(set(kwargs.keys()), {"system_prompt"})
+        self.assertEqual(kwargs["system_prompt"], main.SYSTEM_PROMPT)
 
     @patch("personal_librarian.main.get_agent")
     def test_handle_chat_unified(self, mock_get_agent):
